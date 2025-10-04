@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Button } from '@/components/ui/Button'
+import AgentPalette from '@/components/AgentPalette'
+import DroppableCanvas from '@/components/DroppableCanvas'
 import { 
   Brain, 
   CheckSquare, 
@@ -9,11 +13,7 @@ import {
   Settings, 
   Play, 
   Save, 
-  FolderOpen,
-  GitBranch,
-  MessageSquare,
-  Github,
-  Zap
+  FolderOpen
 } from 'lucide-react'
 
 type ViewType = 'agentic' | 'tasks' | 'split'
@@ -51,7 +51,8 @@ export default function Workspace() {
   ]
 
   return (
-    <div className="h-screen bg-white flex flex-col">
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-screen bg-gray-50 flex flex-col">
       {/* Top Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -142,48 +143,16 @@ export default function Workspace() {
                   Agentic Workflow Canvas
                 </h3>
               </div>
-              <div className="flex-1 bg-white relative overflow-hidden">
-                {/* Canvas with dots pattern */}
-                <div 
-                  className="absolute inset-0 "
-                  style={{
-                    backgroundImage: `radial-gradient(circle, #000000 1px, transparent 1px)`,
-                    backgroundSize: '20px 20px'
-                  }}
-                />
-                
-                {/* Agent Palette */}
-                <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3 font-notion">AI Agents</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded cursor-pointer hover:bg-blue-100 transition-colors">
-                      <Zap className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-700 font-notion">Sprint Planner</span>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 bg-green-50 rounded cursor-pointer hover:bg-green-100 transition-colors">
-                      <CheckSquare className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700 font-notion">Task Generator</span>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 bg-purple-50 rounded cursor-pointer hover:bg-purple-100 transition-colors">
-                      <Github className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-medium text-gray-700 font-notion">GitHub Bot</span>
-                    </div>
-                    <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded cursor-pointer hover:bg-orange-100 transition-colors">
-                      <MessageSquare className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-medium text-gray-700 font-notion">Discord Notifier</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Canvas Content */}
-                <div className="absolute inset-0 p-8">
-                  <div className="text-center text-gray-400 mt-20 font-notion">
-                    <Brain className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Drag AI agents here to build workflows</p>
-                    <p className="text-sm mt-2">Connect agents to create intelligent automation pipelines</p>
-                  </div>
-                </div>
-              </div>
+              {/* Agent Palette */}
+              <AgentPalette />
+              
+              {/* Droppable Canvas */}
+              <DroppableCanvas
+                title="Agentic Workflow Canvas"
+                emptyStateIcon={Brain}
+                emptyStateTitle="Drag AI agents here to build workflows"
+                emptyStateDescription="Connect agents to create intelligent automation pipelines"
+              />
             </div>
 
             {/* Bottom Panel - Task Canvas */}
@@ -258,22 +227,16 @@ export default function Workspace() {
                 Agentic Workflow Canvas
               </h3>
             </div>
-            <div className="flex-1 bg-white relative overflow-hidden">
-              <div 
-                className="absolute inset-0 "
-                style={{
-                  backgroundImage: `radial-gradient(circle, #000000 1px, transparent 1px)`,
-                  backgroundSize: '20px 20px'
-                }}
-              />
-              <div className="absolute inset-0 p-8">
-                <div className="text-center text-gray-400 mt-20 font-notion">
-                  <Brain className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Drag AI agents here to build workflows</p>
-                  <p className="text-sm mt-2">Connect agents to create intelligent automation pipelines</p>
-                </div>
-              </div>
-            </div>
+            {/* Agent Palette */}
+            <AgentPalette />
+            
+            {/* Droppable Canvas */}
+            <DroppableCanvas
+              title="Agentic Workflow Canvas"
+              emptyStateIcon={Brain}
+              emptyStateTitle="Drag AI agents here to build workflows"
+              emptyStateDescription="Connect agents to create intelligent automation pipelines"
+            />
           </div>
         )}
 
@@ -304,6 +267,7 @@ export default function Workspace() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </DndProvider>
   )
 }
