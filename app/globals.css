@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
+  --background: 17 24 39; /* gray-900 */
+  --foreground: 249 250 251; /* gray-50 */
+  --primary: 59 130 246; /* blue-500 */
+  --primary-foreground: 255 255 255;
+  --secondary: 55 65 81; /* gray-700 */
+  --secondary-foreground: 229 231 235; /* gray-200 */
 }
 
 * {
@@ -34,20 +34,35 @@ a {
   text-decoration: none;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgb(31 41 55); /* gray-800 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: rgb(75 85 99); /* gray-600 */
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgb(107 114 128); /* gray-500 */
+}
+
+/* Gradient text utilities */
+.gradient-text-blue {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-white-blue {
+  background: linear-gradient(135deg, #ffffff, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
