@@ -61,7 +61,7 @@ export default function Home() {
               Drag, drop, and watch AI agents automate your entire workflow.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link href="/workspace">
+              <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-10 py-5 font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 shadow-2xl shadow-blue-500/25">
                   Get Started Free →
                 </Button>
@@ -217,7 +217,7 @@ export default function Home() {
           <p className="text-xl text-gray-300 mb-10 font-notion">
             Join thousands of teams already using Aira to build intelligent, automated workflows
           </p>
-          <Link href="/workspace">
+          <Link href="/dashboard">
             <Button size="lg" className="text-lg px-12 py-5 font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 shadow-2xl shadow-blue-500/25">
               Start Building Now
             </Button>
