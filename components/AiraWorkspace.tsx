@@ -58,6 +58,10 @@ export default function AiraWorkspace() {
   const [connectionStart, setConnectionStart] = useState<{ cardId: string; x: number; y: number; pointType: 'left' | 'right' } | null>(null)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
+  // Canvas dimensions - much larger than viewport
+  const CANVAS_WIDTH = 4000  // 4x larger than typical viewport
+  const CANVAS_HEIGHT = 3000 // 3x larger than typical viewport
+
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: 'task-1',
@@ -68,8 +72,8 @@ export default function AiraWorkspace() {
       dueDate: 'January 25th, 2025',
       isCompleted: true,
       statusColor: 'yellow',
-      x: 100,
-      y: 100
+      x: 500,
+      y: 300
     },
     {
       id: 'task-2',
@@ -80,8 +84,8 @@ export default function AiraWorkspace() {
       dueDate: 'January 25th, 2025',
       isCompleted: true,
       statusColor: 'red',
-      x: 500,
-      y: 100
+      x: 1200,
+      y: 300
     },
     {
       id: 'task-3',
@@ -92,8 +96,32 @@ export default function AiraWorkspace() {
       dueDate: 'January 26th, 2025',
       isCompleted: false,
       statusColor: 'blue',
-      x: 300,
-      y: 300
+      x: 800,
+      y: 800
+    },
+    {
+      id: 'task-4',
+      title: 'Backend API Design',
+      description: 'Design RESTful APIs for the application',
+      assignee: 'Rayyan',
+      techStacks: ['Node.js', 'Express', 'PostgreSQL'],
+      dueDate: 'January 27th, 2025',
+      isCompleted: false,
+      statusColor: 'green',
+      x: 2000,
+      y: 600
+    },
+    {
+      id: 'task-5',
+      title: 'Deployment & DevOps',
+      description: 'Set up CI/CD pipeline and cloud deployment',
+      assignee: 'Rayyan',
+      techStacks: ['Docker', 'AWS', 'GitHub Actions'],
+      dueDate: 'January 28th, 2025',
+      isCompleted: false,
+      statusColor: 'yellow',
+      x: 2800,
+      y: 1000
     }
   ])
 
@@ -110,8 +138,8 @@ export default function AiraWorkspace() {
         { id: 'method-1', name: 'login', parameters: 'email, password', returnType: 'Session', isVisible: true },
         { id: 'method-2', name: 'register', parameters: 'email, password, name', returnType: 'User', isVisible: true }
       ],
-      x: 700,
-      y: 200
+      x: 1600,
+      y: 600
     },
     {
       id: 'uml-2',
@@ -125,8 +153,24 @@ export default function AiraWorkspace() {
         { id: 'method-3', name: 'createTask', parameters: 'title, description', returnType: 'Task', isVisible: true },
         { id: 'method-4', name: 'addMember', parameters: 'user', returnType: 'void', isVisible: true }
       ],
-      x: 900,
+      x: 2400,
       y: 400
+    },
+    {
+      id: 'uml-3',
+      name: 'Task',
+      attributes: [
+        { id: 'attr-7', name: 'id', type: 'string', isVisible: true },
+        { id: 'attr-8', name: 'title', type: 'string', isVisible: true },
+        { id: 'attr-9', name: 'status', type: 'TaskStatus', isVisible: true },
+        { id: 'attr-10', name: 'priority', type: 'Priority', isVisible: true }
+      ],
+      methods: [
+        { id: 'method-5', name: 'updateStatus', parameters: 'status: TaskStatus', returnType: 'void', isVisible: true },
+        { id: 'method-6', name: 'assignTo', parameters: 'user: User', returnType: 'void', isVisible: true }
+      ],
+      x: 3200,
+      y: 800
     }
   ])
 
@@ -135,27 +179,27 @@ export default function AiraWorkspace() {
       id: 'conn-1',
       fromId: 'task-1',
       toId: 'task-2',
-      fromX: 180,
-      fromY: 100,
-      toX: 500,
-      toY: 100
+      fromX: 580,
+      fromY: 300,
+      toX: 1200,
+      toY: 300
     },
     {
       id: 'conn-2',
       fromId: 'task-1',
       toId: 'uml-1',
-      fromX: 180,
-      fromY: 100,
-      toX: 700,
-      toY: 200
+      fromX: 580,
+      fromY: 300,
+      toX: 1600,
+      toY: 600
     },
     {
       id: 'conn-3',
       fromId: 'task-3',
       toId: 'uml-2',
-      fromX: 380,
-      fromY: 300,
-      toX: 900,
+      fromX: 880,
+      fromY: 800,
+      toX: 2400,
       toY: 400
     }
   ])
@@ -195,8 +239,8 @@ export default function AiraWorkspace() {
       techStacks: [],
       isCompleted: false,
       statusColor: 'blue',
-      x: Math.random() * 400 + 100,
-      y: Math.random() * 300 + 100
+      x: Math.random() * (CANVAS_WIDTH - 200) + 100,
+      y: Math.random() * (CANVAS_HEIGHT - 200) + 100
     }
     setTasks(prev => [...prev, newTask])
   }
@@ -207,8 +251,8 @@ export default function AiraWorkspace() {
       name: 'New Entity',
       attributes: [],
       methods: [],
-      x: Math.random() * 400 + 100,
-      y: Math.random() * 300 + 400
+      x: Math.random() * (CANVAS_WIDTH - 200) + 100,
+      y: Math.random() * (CANVAS_HEIGHT - 200) + 100
     }
     setUMLs(prev => [...prev, newUML])
   }
@@ -224,6 +268,13 @@ export default function AiraWorkspace() {
   const handleResetView = () => {
     setZoom(1)
     setPan({ x: 0, y: 0 })
+  }
+
+  const handleCenterView = () => {
+    // Center the view on the middle of the canvas
+    const centerX = (CANVAS_WIDTH / 2) - (window.innerWidth / 2)
+    const centerY = (CANVAS_HEIGHT / 2) - (window.innerHeight / 2)
+    setPan({ x: -centerX, y: -centerY })
   }
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
@@ -362,11 +413,13 @@ export default function AiraWorkspace() {
       </div>
 
       {/* Main Canvas */}
-      <div className="absolute inset-0 canvas-container">
+      <div className="absolute inset-0 canvas-container overflow-hidden">
         {/* Dotted Grid Background - Clickable for panning */}
         <div 
-          className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`absolute ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
           style={{
+            width: `${CANVAS_WIDTH}px`,
+            height: `${CANVAS_HEIGHT}px`,
             backgroundImage: `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`,
             backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
@@ -381,8 +434,10 @@ export default function AiraWorkspace() {
 
         {/* Zoomed and Panned Container for Components */}
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute pointer-events-none"
           style={{
+            width: `${CANVAS_WIDTH}px`,
+            height: `${CANVAS_HEIGHT}px`,
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: '0 0',
             zIndex: 2
@@ -475,6 +530,13 @@ export default function AiraWorkspace() {
           className="p-2 bg-white hover:bg-gray-50 text-gray-600 rounded-lg shadow-sm transition-colors"
         >
           <Maximize className="h-4 w-4" />
+        </button>
+        <button 
+          onClick={handleCenterView}
+          className="p-2 bg-white hover:bg-gray-50 text-gray-600 rounded-lg shadow-sm transition-colors"
+          title="Center View"
+        >
+          <Camera className="h-4 w-4" />
         </button>
       </div>
 
