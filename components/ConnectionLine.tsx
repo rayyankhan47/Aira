@@ -29,15 +29,22 @@ export default function ConnectionLine({ fromX, fromY, toX, toY, id }: Connectio
     return () => cancelAnimationFrame(animationFrame)
   }, [])
 
-  // Calculate control points for smooth bezier curve
+  // Create orthogonal path with 90-degree turns
   const dx = toX - fromX
   const dy = toY - fromY
-  const controlX1 = fromX + dx * 0.5
-  const controlY1 = fromY
-  const controlX2 = toX - dx * 0.5
-  const controlY2 = toY
-
-  const pathData = `M ${fromX} ${fromY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${toX} ${toY}`
+  
+  // Determine the best routing strategy based on distance and direction
+  let pathData = ''
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Horizontal routing: go horizontal first, then vertical
+    const midX = fromX + dx * 0.5
+    pathData = `M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}`
+  } else {
+    // Vertical routing: go vertical first, then horizontal
+    const midY = fromY + dy * 0.5
+    pathData = `M ${fromX} ${fromY} L ${fromX} ${midY} L ${toX} ${midY} L ${toX} ${toY}`
+  }
 
   // Calculate SVG dimensions
   const minX = Math.min(fromX, toX) - 10
@@ -53,7 +60,20 @@ export default function ConnectionLine({ fromX, fromY, toX, toY, id }: Connectio
   const adjustedToX = toX - minX
   const adjustedToY = toY - minY
 
-  const adjustedPathData = `M ${adjustedFromX} ${adjustedFromY} C ${adjustedFromX + width * 0.5} ${adjustedFromY}, ${adjustedToX - width * 0.5} ${adjustedToY}, ${adjustedToX} ${adjustedToY}`
+  // Create orthogonal path with adjusted coordinates
+  let adjustedPathData = ''
+  const adjustedDx = adjustedToX - adjustedFromX
+  const adjustedDy = adjustedToY - adjustedFromY
+  
+  if (Math.abs(adjustedDx) > Math.abs(adjustedDy)) {
+    // Horizontal routing: go horizontal first, then vertical
+    const midX = adjustedFromX + adjustedDx * 0.5
+    adjustedPathData = `M ${adjustedFromX} ${adjustedFromY} L ${midX} ${adjustedFromY} L ${midX} ${adjustedToY} L ${adjustedToX} ${adjustedToY}`
+  } else {
+    // Vertical routing: go vertical first, then horizontal
+    const midY = adjustedFromY + adjustedDy * 0.5
+    adjustedPathData = `M ${adjustedFromX} ${adjustedFromY} L ${adjustedFromX} ${midY} L ${adjustedToX} ${midY} L ${adjustedToX} ${adjustedToY}`
+  }
 
   return (
     <svg

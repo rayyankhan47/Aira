@@ -71,6 +71,7 @@ export default function CanvasAgent({
   
   return (
     <div
+      data-agent-id={id}
       onMouseDown={handleMouseDown}
       className={`absolute bg-white rounded-lg shadow-lg border border-gray-200 p-4 cursor-move hover:shadow-xl transition-shadow ${
         isDragging ? 'opacity-70 z-50' : ''

@@ -136,19 +136,29 @@ export default function DroppableCanvas({
   const handleConnectionPointMouseUp = (agentId: string, x: number, y: number, pointType: 'left' | 'right') => {
     console.log('Mouse up on agent:', agentId, 'isConnecting:', isConnecting, 'connectionStart:', connectionStart)
     if (isConnecting && connectionStart && connectionStart.agentId !== agentId) {
-      const newConnection: Connection = {
-        id: `conn-${Date.now()}`,
-        fromAgentId: connectionStart.agentId,
-        toAgentId: agentId,
-        fromX: connectionStart.x,
-        fromY: connectionStart.y,
-        toX: x,
-        toY: y,
-        fromPointType: connectionStart.pointType,
-        toPointType: pointType
+      // Check if connection already exists between these two agents
+      const connectionExists = connections.some(conn => 
+        (conn.fromAgentId === connectionStart.agentId && conn.toAgentId === agentId) ||
+        (conn.fromAgentId === agentId && conn.toAgentId === connectionStart.agentId)
+      )
+      
+      if (!connectionExists) {
+        const newConnection: Connection = {
+          id: `conn-${Date.now()}`,
+          fromAgentId: connectionStart.agentId,
+          toAgentId: agentId,
+          fromX: connectionStart.x,
+          fromY: connectionStart.y,
+          toX: x,
+          toY: y,
+          fromPointType: connectionStart.pointType,
+          toPointType: pointType
+        }
+        console.log('Creating connection:', newConnection)
+        setConnections(prev => [...prev, newConnection])
+      } else {
+        console.log('Connection already exists between these agents')
       }
-      console.log('Creating connection:', newConnection)
-      setConnections(prev => [...prev, newConnection])
     }
     setIsConnecting(false)
     setConnectionStart(null)
@@ -161,9 +171,68 @@ export default function DroppableCanvas({
         const fromAgent = placedAgents.find(a => a.id === conn.fromAgentId)
         const toAgent = placedAgents.find(a => a.id === conn.toAgentId)
         if (fromAgent && toAgent) {
-          // For now, keep the stored coordinates since they were calculated dynamically
-          // The connection positions should already be accurate from the initial creation
-          return conn
+          // Calculate new connection point positions based on current agent positions
+          let newFromX = fromAgent.x
+          let newFromY = fromAgent.y + 40
+          let newToX = toAgent.x  
+          let newToY = toAgent.y + 40
+
+          // Adjust based on connection point types
+          if (conn.fromPointType === 'right') {
+            // Find the right connection point dynamically
+            const fromAgentElement = document.querySelector(`[data-agent-id="${fromAgent.id}"] .connection-point.absolute.-right-2`)
+            if (fromAgentElement) {
+              const rect = fromAgentElement.getBoundingClientRect()
+              const canvasRect = canvasRef.current?.getBoundingClientRect()
+              if (canvasRect) {
+                newFromX = rect.left + rect.width / 2 - canvasRect.left
+                newFromY = rect.top + rect.height / 2 - canvasRect.top
+              }
+            }
+          } else {
+            // Find the left connection point dynamically
+            const fromAgentElement = document.querySelector(`[data-agent-id="${fromAgent.id}"] .connection-point.absolute.-left-2`)
+            if (fromAgentElement) {
+              const rect = fromAgentElement.getBoundingClientRect()
+              const canvasRect = canvasRef.current?.getBoundingClientRect()
+              if (canvasRect) {
+                newFromX = rect.left + rect.width / 2 - canvasRect.left
+                newFromY = rect.top + rect.height / 2 - canvasRect.top
+              }
+            }
+          }
+
+          if (conn.toPointType === 'right') {
+            // Find the right connection point dynamically
+            const toAgentElement = document.querySelector(`[data-agent-id="${toAgent.id}"] .connection-point.absolute.-right-2`)
+            if (toAgentElement) {
+              const rect = toAgentElement.getBoundingClientRect()
+              const canvasRect = canvasRef.current?.getBoundingClientRect()
+              if (canvasRect) {
+                newToX = rect.left + rect.width / 2 - canvasRect.left
+                newToY = rect.top + rect.height / 2 - canvasRect.top
+              }
+            }
+          } else {
+            // Find the left connection point dynamically
+            const toAgentElement = document.querySelector(`[data-agent-id="${toAgent.id}"] .connection-point.absolute.-left-2`)
+            if (toAgentElement) {
+              const rect = toAgentElement.getBoundingClientRect()
+              const canvasRect = canvasRef.current?.getBoundingClientRect()
+              if (canvasRect) {
+                newToX = rect.left + rect.width / 2 - canvasRect.left
+                newToY = rect.top + rect.height / 2 - canvasRect.top
+              }
+            }
+          }
+
+          return {
+            ...conn,
+            fromX: newFromX,
+            fromY: newFromY,
+            toX: newToX,
+            toY: newToY
+          }
         }
         return conn
       })
