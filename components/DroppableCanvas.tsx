@@ -248,7 +248,7 @@ export default function DroppableCanvas({
 
   return (
     <div className="flex-1 bg-white relative overflow-hidden canvas-container">
-      {/* Canvas with dots pattern */}
+      {/* Canvas with black dots pattern */}
       <div 
         className="absolute inset-0"
         style={{
@@ -314,10 +314,12 @@ export default function DroppableCanvas({
         {/* Empty State */}
         {placedAgents.length === 0 && (
           <div className="absolute inset-0 p-8">
-            <div className="text-center text-gray-400 mt-20 font-notion">
-              <EmptyStateIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">{emptyStateTitle}</p>
-              <p className="text-sm mt-2">{emptyStateDescription}</p>
+            <div className="flex items-center justify-center h-full">
+              <div className="bg-gray-100 rounded-lg p-8 max-w-md text-center shadow-sm border border-gray-200">
+                <EmptyStateIcon className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                <p className="text-lg text-gray-700 font-notion mb-2">{emptyStateTitle}</p>
+                <p className="text-sm text-gray-600 font-notion">{emptyStateDescription}</p>
+              </div>
             </div>
           </div>
         )}

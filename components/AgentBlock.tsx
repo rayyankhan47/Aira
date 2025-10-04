@@ -29,7 +29,7 @@ export default function AgentBlock({ id, name, icon: Icon, color, description }:
       style={{ backgroundColor: `${color}20` }}
     >
       <Icon className={`h-4 w-4 ${color}`} />
-      <span className="text-sm font-medium text-gray-700 font-notion">{name}</span>
+      <span className="text-sm font-medium text-gray-300 font-notion">{name}</span>
     </div>
   )
 }

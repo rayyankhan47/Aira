@@ -36,8 +36,8 @@ export default function AgentPalette() {
   ]
 
   return (
-    <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-      <h4 className="text-sm font-medium text-gray-700 mb-3 font-notion">AI Agents</h4>
+    <div className="absolute top-4 left-4 bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700">
+      <h4 className="text-sm font-medium text-gray-300 mb-3 font-notion">AI Agents</h4>
       <div className="space-y-2">
         {agents.map(agent => (
           <AgentBlock

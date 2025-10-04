@@ -99,22 +99,22 @@ export default function Workspace() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="h-screen bg-gray-50 flex flex-col">
+      <div className="h-screen bg-gray-900 flex flex-col">
       {/* Top Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <header className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <Brain className="h-6 w-6 text-blue-600" />
-            <span className="text-lg font-semibold text-gray-900 font-notion">Aira</span>
+            <Brain className="h-6 w-6 text-blue-400" />
+            <span className="text-lg font-semibold text-white font-notion">Aira</span>
           </div>
           
           {/* Project Selector */}
           <div className="flex items-center space-x-2">
-            <FolderOpen className="h-4 w-4 text-gray-500" />
+            <FolderOpen className="h-4 w-4 text-gray-400" />
             <select 
               value={activeProject}
               onChange={(e) => setActiveProject(e.target.value)}
-              className="bg-transparent border-none text-gray-700 font-medium font-notion focus:outline-none"
+              className="bg-transparent border-none text-gray-300 font-medium font-notion focus:outline-none"
             >
               {projects.map(project => (
                 <option key={project.id} value={project.id}>
@@ -126,35 +126,35 @@ export default function Workspace() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm" className="font-notion">
+          <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="font-notion"
+            className="font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 text-white"
             onClick={handleRunWorkflow}
             disabled={isExecuting}
           >
             <Play className={`h-4 w-4 mr-2 ${isExecuting ? 'animate-spin' : ''}`} />
             {isExecuting ? 'Running...' : 'Run Workflow'}
           </Button>
-          <Button variant="outline" size="sm" className="font-notion">
+          <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
             <Settings className="h-4 w-4" />
           </Button>
         </div>
       </header>
 
       {/* View Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-gray-800 border-b border-gray-700">
         <div className="flex">
           <button
             onClick={() => setActiveView('agentic')}
             className={`px-6 py-3 font-medium font-notion border-b-2 transition-colors ${
               activeView === 'agentic' 
-                ? 'border-blue-600 text-blue-600 bg-blue-50' 
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-white'
+                ? 'border-blue-500 text-blue-400 bg-blue-900/20' 
+                : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
             <Brain className="h-4 w-4 inline mr-2" />
@@ -164,8 +164,8 @@ export default function Workspace() {
             onClick={() => setActiveView('tasks')}
             className={`px-6 py-3 font-medium font-notion border-b-2 transition-colors ${
               activeView === 'tasks' 
-                ? 'border-green-600 text-green-600 bg-green-50' 
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-white'
+                ? 'border-green-500 text-green-400 bg-green-900/20' 
+                : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
             <CheckSquare className="h-4 w-4 inline mr-2" />
@@ -175,8 +175,8 @@ export default function Workspace() {
             onClick={() => setActiveView('split')}
             className={`px-6 py-3 font-medium font-notion border-b-2 transition-colors ${
               activeView === 'split' 
-                ? 'border-purple-600 text-purple-600 bg-purple-50' 
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-white'
+                ? 'border-purple-500 text-purple-400 bg-purple-900/20' 
+                : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
             Split View
@@ -189,10 +189,10 @@ export default function Workspace() {
         {activeView === 'split' && (
           <>
             {/* Top Panel - Agentic Canvas */}
-            <div className="flex-1 flex flex-col border-r border-gray-200">
-              <div className="bg-white px-4 py-2 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 font-notion flex items-center">
-                  <Brain className="h-4 w-4 mr-2 text-blue-600" />
+            <div className="flex-1 flex flex-col border-r border-gray-700">
+              <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
+                <h3 className="text-sm font-medium text-gray-300 font-notion flex items-center">
+                  <Brain className="h-4 w-4 mr-2 text-blue-400" />
                   Agentic Workflow Canvas
                 </h3>
               </div>
@@ -211,14 +211,14 @@ export default function Workspace() {
 
             {/* Bottom Panel - Task Canvas */}
             <div className="flex-1 flex flex-col">
-              <div className="bg-white px-4 py-2 border-b border-gray-200">
+              <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-700 font-notion flex items-center">
-                    <CheckSquare className="h-4 w-4 mr-2 text-green-600" />
+                  <h3 className="text-sm font-medium text-gray-300 font-notion flex items-center">
+                    <CheckSquare className="h-4 w-4 mr-2 text-green-400" />
                     Task Management Canvas
                   </h3>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" className="font-notion">
+                    <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
                       <Plus className="h-3 w-3 mr-1" />
                       Add Task
                     </Button>
@@ -227,7 +227,7 @@ export default function Workspace() {
               </div>
               
               {/* Project Tabs */}
-              <div className="bg-white border-b border-gray-200">
+              <div className="bg-gray-800 border-b border-gray-700">
                 <div className="flex">
                   {projects.map(project => (
                     <button
@@ -235,14 +235,14 @@ export default function Workspace() {
                       onClick={() => setActiveProject(project.id)}
                       className={`px-4 py-2 text-sm font-medium font-notion border-b-2 transition-colors ${
                         activeProject === project.id
-                          ? 'border-green-600 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-green-500 text-green-400'
+                          : 'border-transparent text-gray-400 hover:text-white'
                       }`}
                     >
                       {project.name}
                     </button>
                   ))}
-                  <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 font-notion">
+                  <button className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white font-notion">
                     <Plus className="h-3 w-3 mr-1 inline" />
                     New Project
                   </button>
@@ -250,7 +250,7 @@ export default function Workspace() {
               </div>
 
               <div className="flex-1 bg-white relative overflow-hidden">
-                {/* Canvas with dots pattern */}
+                {/* Canvas with black dots pattern */}
                 <div 
                   className="absolute inset-0 "
                   style={{
@@ -287,10 +287,12 @@ export default function Workspace() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-gray-400 mt-20 font-notion">
-                    <CheckSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Tasks will appear here</p>
-                    <p className="text-sm mt-2">Run agentic workflows to auto-generate tasks, or add them manually</p>
+                  <div className="flex items-center justify-center h-full">
+                    <div className="bg-gray-100 rounded-lg p-8 max-w-md text-center shadow-sm border border-gray-200">
+                      <CheckSquare className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg text-gray-700 font-notion mb-2">Tasks will appear here</p>
+                      <p className="text-sm text-gray-600 font-notion">Run agentic workflows to auto-generate tasks, or add them manually</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -302,9 +304,9 @@ export default function Workspace() {
         {/* Single View Modes */}
         {activeView === 'agentic' && (
           <div className="flex-1 flex flex-col">
-            <div className="bg-white px-4 py-2 border-b border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 font-notion flex items-center">
-                <Brain className="h-4 w-4 mr-2 text-blue-600" />
+            <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
+              <h3 className="text-sm font-medium text-gray-300 font-notion flex items-center">
+                <Brain className="h-4 w-4 mr-2 text-blue-400" />
                 Agentic Workflow Canvas
               </h3>
             </div>
@@ -324,9 +326,9 @@ export default function Workspace() {
 
         {activeView === 'tasks' && (
           <div className="flex-1 flex flex-col">
-            <div className="bg-white px-4 py-2 border-b border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 font-notion flex items-center">
-                <CheckSquare className="h-4 w-4 mr-2 text-green-600" />
+            <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
+              <h3 className="text-sm font-medium text-gray-300 font-notion flex items-center">
+                <CheckSquare className="h-4 w-4 mr-2 text-green-400" />
                 Task Management Canvas
               </h3>
             </div>
@@ -339,10 +341,12 @@ export default function Workspace() {
                 }}
               />
               <div className="absolute inset-0 p-8">
-                <div className="text-center text-gray-400 mt-20 font-notion">
-                  <CheckSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Tasks will appear here</p>
-                  <p className="text-sm mt-2">Run agentic workflows to auto-generate tasks, or add them manually</p>
+                <div className="flex items-center justify-center h-full">
+                  <div className="bg-gray-100 rounded-lg p-8 max-w-md text-center shadow-sm border border-gray-200">
+                    <CheckSquare className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg text-gray-700 font-notion mb-2">Tasks will appear here</p>
+                    <p className="text-sm text-gray-600 font-notion">Run agentic workflows to auto-generate tasks, or add them manually</p>
+                  </div>
                 </div>
               </div>
             </div>

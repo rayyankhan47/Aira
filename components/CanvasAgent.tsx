@@ -91,7 +91,7 @@ export default function CanvasAgent({
         {onDelete && (
           <button
             onClick={onDelete}
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            className="text-gray-400 hover:text-red-400 transition-colors"
           >
             ×
           </button>
