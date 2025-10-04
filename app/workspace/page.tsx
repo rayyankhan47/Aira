@@ -28,6 +28,10 @@ interface Project {
 export default function Workspace() {
   const [activeView, setActiveView] = useState<ViewType>('split')
   const [activeProject, setActiveProject] = useState('mchacks-2025')
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [executionResults, setExecutionResults] = useState<any[]>([])
+  const [workflowAgents, setWorkflowAgents] = useState<any[]>([])
+  const [workflowConnections, setWorkflowConnections] = useState<any[]>([])
   
   const projects: Project[] = [
     {
@@ -49,6 +53,49 @@ export default function Workspace() {
       createdAt: '2025-01-24'
     }
   ]
+
+  const handleWorkflowChange = (agents: any[], connections: any[]) => {
+    setWorkflowAgents(agents)
+    setWorkflowConnections(connections)
+  }
+
+  const handleRunWorkflow = async () => {
+    setIsExecuting(true)
+    setExecutionResults([])
+    
+    try {
+      // For now, we'll use a simple test input
+      // In a real implementation, you'd get this from user input or form
+      const testInput = "Create a new feature for user authentication with login, signup, and password reset functionality"
+      
+      const response = await fetch('/api/execute-workflow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          connections: workflowConnections,
+          agents: workflowAgents,
+          initialInput: testInput,
+          workflowGoal: "Build user authentication system",
+          executeSingle: false
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setExecutionResults(data.results)
+        console.log('Workflow executed successfully:', data.results)
+      } else {
+        console.error('Workflow execution failed:', data.error)
+      }
+    } catch (error) {
+      console.error('Error running workflow:', error)
+    } finally {
+      setIsExecuting(false)
+    }
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -83,9 +130,15 @@ export default function Workspace() {
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
-          <Button variant="outline" size="sm" className="font-notion">
-            <Play className="h-4 w-4 mr-2" />
-            Run Workflow
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="font-notion"
+            onClick={handleRunWorkflow}
+            disabled={isExecuting}
+          >
+            <Play className={`h-4 w-4 mr-2 ${isExecuting ? 'animate-spin' : ''}`} />
+            {isExecuting ? 'Running...' : 'Run Workflow'}
           </Button>
           <Button variant="outline" size="sm" className="font-notion">
             <Settings className="h-4 w-4" />
@@ -152,6 +205,7 @@ export default function Workspace() {
                 emptyStateIcon={Brain}
                 emptyStateTitle="Drag AI agents here to build workflows"
                 emptyStateDescription="Connect agents to create intelligent automation pipelines"
+                onWorkflowChange={handleWorkflowChange}
               />
             </div>
 
@@ -205,14 +259,41 @@ export default function Workspace() {
                   }}
                 />
                 
-                {/* Task Canvas Content */}
-                <div className="absolute inset-0 p-8">
+              {/* Task Canvas Content */}
+              <div className="absolute inset-0 p-8">
+                {executionResults.length > 0 ? (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 font-notion mb-4">
+                      Workflow Execution Results
+                    </h3>
+                    {executionResults.map((result, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900 font-notion">
+                            {result.data?.agentName || `Agent ${index + 1}`}
+                          </h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            result.success 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {result.success ? 'Success' : 'Error'}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 font-notion whitespace-pre-wrap">
+                          {result.output}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                   <div className="text-center text-gray-400 mt-20 font-notion">
                     <CheckSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg">Tasks will appear here</p>
                     <p className="text-sm mt-2">Run agentic workflows to auto-generate tasks, or add them manually</p>
                   </div>
-                </div>
+                )}
+              </div>
               </div>
             </div>
           </>
@@ -236,6 +317,7 @@ export default function Workspace() {
               emptyStateIcon={Brain}
               emptyStateTitle="Drag AI agents here to build workflows"
               emptyStateDescription="Connect agents to create intelligent automation pipelines"
+              onWorkflowChange={handleWorkflowChange}
             />
           </div>
         )}

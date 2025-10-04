@@ -34,13 +34,15 @@ interface DroppableCanvasProps {
   emptyStateIcon: LucideIcon
   emptyStateTitle: string
   emptyStateDescription: string
+  onWorkflowChange?: (agents: PlacedAgent[], connections: Connection[]) => void
 }
 
 export default function DroppableCanvas({ 
   title, 
   emptyStateIcon: EmptyStateIcon, 
   emptyStateTitle, 
-  emptyStateDescription 
+  emptyStateDescription,
+  onWorkflowChange
 }: DroppableCanvasProps) {
   const [placedAgents, setPlacedAgents] = useState<PlacedAgent[]>([])
   const [connections, setConnections] = useState<Connection[]>([])
@@ -49,6 +51,11 @@ export default function DroppableCanvas({
   const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null)
 
   const canvasRef = React.useRef<HTMLDivElement>(null)
+
+  // Notify parent when workflow changes
+  React.useEffect(() => {
+    onWorkflowChange?.(placedAgents, connections)
+  }, [placedAgents, connections, onWorkflowChange])
   
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'agent',
