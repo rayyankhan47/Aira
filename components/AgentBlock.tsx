@@ -22,7 +22,7 @@ export default function AgentBlock({ id, name, icon: Icon, color, description }:
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       className={`flex items-center space-x-2 p-2 rounded cursor-move transition-all duration-200 hover:scale-105 ${
         isDragging ? 'opacity-50' : ''
       }`}

@@ -4,6 +4,7 @@ import { useDrop } from 'react-dnd'
 import { useState } from 'react'
 import * as React from 'react'
 import CanvasAgent from './CanvasAgent'
+import ConnectionLine from './ConnectionLine'
 import { LucideIcon } from 'lucide-react'
 
 interface PlacedAgent {
@@ -14,6 +15,16 @@ interface PlacedAgent {
   description: string
   x: number
   y: number
+}
+
+interface Connection {
+  id: string
+  fromAgentId: string
+  toAgentId: string
+  fromX: number
+  fromY: number
+  toX: number
+  toY: number
 }
 
 interface DroppableCanvasProps {
@@ -30,6 +41,10 @@ export default function DroppableCanvas({
   emptyStateDescription 
 }: DroppableCanvasProps) {
   const [placedAgents, setPlacedAgents] = useState<PlacedAgent[]>([])
+  const [connections, setConnections] = useState<Connection[]>([])
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [connectionStart, setConnectionStart] = useState<{agentId: string, x: number, y: number} | null>(null)
+  const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null)
 
   const canvasRef = React.useRef<HTMLDivElement>(null)
   
@@ -72,6 +87,87 @@ export default function DroppableCanvas({
         agent.id === agentId ? { ...agent, x, y } : agent
       )
     )
+    // Update connection positions
+    updateConnectionPositions()
+  }
+
+  // Track mouse position for connection line
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isConnecting) {
+        const canvasElement = canvasRef.current
+        if (canvasElement) {
+          const canvasRect = canvasElement.getBoundingClientRect()
+          setMousePosition({
+            x: e.clientX - canvasRect.left,
+            y: e.clientY - canvasRect.top
+          })
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      if (isConnecting) {
+        setIsConnecting(false)
+        setConnectionStart(null)
+        setMousePosition(null)
+      }
+    }
+
+    if (isConnecting) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isConnecting])
+
+  const handleConnectionPointMouseDown = (agentId: string, x: number, y: number) => {
+    console.log('Mouse down on agent:', agentId, 'position:', x, y)
+    setIsConnecting(true)
+    setConnectionStart({ agentId, x, y })
+    setMousePosition({ x, y })
+  }
+
+  const handleConnectionPointMouseUp = (agentId: string, x: number, y: number) => {
+    console.log('Mouse up on agent:', agentId, 'isConnecting:', isConnecting, 'connectionStart:', connectionStart)
+    if (isConnecting && connectionStart && connectionStart.agentId !== agentId) {
+      const newConnection: Connection = {
+        id: `conn-${Date.now()}`,
+        fromAgentId: connectionStart.agentId,
+        toAgentId: agentId,
+        fromX: connectionStart.x,
+        fromY: connectionStart.y,
+        toX: x,
+        toY: y
+      }
+      console.log('Creating connection:', newConnection)
+      setConnections(prev => [...prev, newConnection])
+    }
+    setIsConnecting(false)
+    setConnectionStart(null)
+    setMousePosition(null)
+  }
+
+  const updateConnectionPositions = () => {
+    setConnections(prev =>
+      prev.map(conn => {
+        const fromAgent = placedAgents.find(a => a.id === conn.fromAgentId)
+        const toAgent = placedAgents.find(a => a.id === conn.toAgentId)
+        if (fromAgent && toAgent) {
+          return {
+            ...conn,
+            fromX: fromAgent.x + 200 + 8, // Right connection point
+            fromY: fromAgent.y + 40,      // Middle of agent
+            toX: toAgent.x - 8,           // Left connection point
+            toY: toAgent.y + 40           // Middle of agent
+          }
+        }
+        return conn
+      })
+    )
   }
 
   return (
@@ -97,6 +193,30 @@ export default function DroppableCanvas({
           isOver ? 'bg-blue-50 bg-opacity-50' : ''
         }`}
       >
+        {/* Connection Lines */}
+        {connections.map(connection => (
+          <ConnectionLine
+            key={connection.id}
+            id={connection.id}
+            fromX={connection.fromX}
+            fromY={connection.fromY}
+            toX={connection.toX}
+            toY={connection.toY}
+          />
+        ))}
+
+        {/* Temporary Connection Line (follows mouse) */}
+        {isConnecting && connectionStart && mousePosition && (
+          <ConnectionLine
+            key="temp-connection"
+            id="temp-connection"
+            fromX={connectionStart.x}
+            fromY={connectionStart.y}
+            toX={mousePosition.x}
+            toY={mousePosition.y}
+          />
+        )}
+
         {/* Placed Agents */}
         {placedAgents.map(agent => (
           <CanvasAgent
@@ -110,6 +230,8 @@ export default function DroppableCanvas({
             y={agent.y}
             onDelete={() => handleDeleteAgent(agent.id)}
             onMove={handleMoveAgent}
+            onConnectionPointMouseDown={handleConnectionPointMouseDown}
+            onConnectionPointMouseUp={handleConnectionPointMouseUp}
           />
         ))}
 
