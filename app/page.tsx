@@ -34,9 +34,11 @@ export default function Home() {
           The all-in-one agentic AI workspace for software engineers and project managers. 
           Drag, drop, and watch AI agents automate your entire workflow.
         </p>
-        <Button size="lg" className="bg-gray-900 text-white hover:bg-gray-800 px-12 py-4 text-lg font-notion">
-          Get Started Free →
-        </Button>
+        <a href="/workspace">
+          <Button size="lg" className="bg-gray-900 text-white hover:bg-gray-800 px-12 py-4 text-lg font-notion">
+            Get Started Free →
+          </Button>
+        </a>
       </section>
 
       {/* Features Section */}
