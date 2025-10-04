@@ -20,7 +20,7 @@ export default function ConnectionLine({ fromX, fromY, toX, toY, id }: Connectio
 
     let offset = 0
     const animate = () => {
-      offset = (offset + 1) % 20
+      offset = (offset + 0.5) % 20  // Slower animation
       path.style.strokeDashoffset = `${offset}`
       requestAnimationFrame(animate)
     }
@@ -86,6 +86,23 @@ export default function ConnectionLine({ fromX, fromY, toX, toY, id }: Connectio
         zIndex: 1 
       }}
     >
+      {/* Arrow marker definition */}
+      <defs>
+        <marker
+          id={`arrowhead-${id}`}
+          markerWidth="6"
+          markerHeight="4"
+          refX="5"
+          refY="2"
+          orient="auto"
+        >
+          <polygon
+            points="0 0, 6 2, 0 4"
+            fill="#3B82F6"
+          />
+        </marker>
+      </defs>
+      
       <path
         ref={pathRef}
         d={adjustedPathData}
@@ -94,6 +111,7 @@ export default function ConnectionLine({ fromX, fromY, toX, toY, id }: Connectio
         fill="none"
         strokeDasharray="10 5"
         strokeLinecap="round"
+        markerEnd={`url(#arrowhead-${id})`}
       />
     </svg>
   )

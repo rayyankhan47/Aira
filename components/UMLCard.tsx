@@ -27,6 +27,8 @@ interface UMLCardProps {
   y: number
   onMove: (id: string, x: number, y: number) => void
   onUpdate: (id: string, updates: Partial<UMLCardProps>) => void
+  onConnectionPointMouseDown?: (agentId: string, x: number, y: number, pointType: 'left' | 'right') => void
+  onConnectionPointMouseUp?: (agentId: string, x: number, y: number, pointType: 'left' | 'right') => void
 }
 
 export default function UMLCard({
@@ -37,7 +39,9 @@ export default function UMLCard({
   x,
   y,
   onMove,
-  onUpdate
+  onUpdate,
+  onConnectionPointMouseDown,
+  onConnectionPointMouseUp
 }: UMLCardProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
@@ -46,13 +50,33 @@ export default function UMLCard({
   const [newMethod, setNewMethod] = useState({ name: '', parameters: '', returnType: '' })
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.target instanceof HTMLElement && e.target.closest('.no-drag')) return
+    if (e.target instanceof HTMLElement && (e.target.closest('.no-drag') || e.target.closest('.connection-point'))) return
     
     setIsDragging(true)
     setDragStart({
       x: e.clientX - x,
       y: e.clientY - y
     })
+  }
+
+  const getConnectionPointCoordinates = (pointType: 'left' | 'right') => {
+    const cardElement = document.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+    if (!cardElement) return { x: 0, y: 0 }
+    
+    const rect = cardElement.getBoundingClientRect()
+    const canvasRect = (cardElement.closest('.canvas-container') as HTMLElement)?.getBoundingClientRect() || { left: 0, top: 0 }
+    
+    if (pointType === 'left') {
+      return {
+        x: rect.left - canvasRect.left,
+        y: rect.top - canvasRect.top + rect.height / 2,
+      }
+    } else {
+      return {
+        x: rect.right - canvasRect.left,
+        y: rect.top - canvasRect.top + rect.height / 2,
+      }
+    }
   }
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -116,143 +140,108 @@ export default function UMLCard({
 
   return (
     <div
-      className={`absolute bg-gray-800 text-white rounded-lg shadow-lg border border-gray-600 min-w-80 max-w-96 cursor-move select-none ${
+      className={`absolute bg-white text-gray-900 rounded-lg shadow-md border border-gray-200 w-56 cursor-move select-none ${
         isDragging ? 'z-50' : 'z-10'
       }`}
       style={{ left: x, top: y }}
       onMouseDown={handleMouseDown}
+      data-card-id={id}
+      data-card-type="uml"
     >
+      {/* Connection Points */}
+      <div 
+        className="connection-point absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full border-2 border-white cursor-crosshair hover:scale-125 transition-transform"
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          const coords = getConnectionPointCoordinates('left')
+          onConnectionPointMouseDown?.(id, coords.x, coords.y, 'left')
+        }}
+        onMouseUp={(e) => {
+          e.stopPropagation()
+          const coords = getConnectionPointCoordinates('left')
+          onConnectionPointMouseUp?.(id, coords.x, coords.y, 'left')
+        }}
+      />
+      <div 
+        className="connection-point absolute -right-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full border-2 border-white cursor-crosshair hover:scale-125 transition-transform"
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          const coords = getConnectionPointCoordinates('right')
+          onConnectionPointMouseDown?.(id, coords.x, coords.y, 'right')
+        }}
+        onMouseUp={(e) => {
+          e.stopPropagation()
+          const coords = getConnectionPointCoordinates('right')
+          onConnectionPointMouseUp?.(id, coords.x, coords.y, 'right')
+        }}
+      />
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-gray-600">
+      <div className="flex items-center justify-between p-2 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <button 
-            className="no-drag text-gray-400 hover:text-white"
+            className="no-drag text-gray-400 hover:text-gray-600"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
-          <h3 className="font-semibold text-white">{name}</h3>
+          <h3 className="font-semibold text-sm">{name}</h3>
         </div>
-        <button className="no-drag text-gray-400 hover:text-white">
-          <X className="h-4 w-4" />
+        <button className="no-drag text-gray-400 hover:text-gray-600">
+          <X className="h-3 w-3" />
         </button>
       </div>
 
       {isExpanded && (
-        <div className="p-3 space-y-4">
+        <div className="p-2 space-y-2">
           {/* Attributes Section */}
           <div>
-            <h4 className="text-sm font-medium text-gray-300 mb-2">Attributes</h4>
-            <div className="space-y-2">
+            <h4 className="text-xs font-medium text-gray-600 mb-1">Attributes</h4>
+            <div className="space-y-1">
               {attributes.map((attr) => (
-                <div key={attr.id} className="flex items-center space-x-2 bg-gray-700 rounded px-2 py-1">
-                  <button className="no-drag text-gray-400 hover:text-white">
-                    <Eye className="h-3 w-3" />
+                <div key={attr.id} className="flex items-center space-x-1 bg-gray-50 rounded px-1.5 py-0.5">
+                  <button className="no-drag text-gray-400 hover:text-gray-600">
+                    <Eye className="h-2 w-2" />
                   </button>
-                  <span className="text-xs text-gray-300">{attr.name}: {attr.type}</span>
-                  <button 
-                    className="no-drag text-gray-400 hover:text-white ml-auto"
-                    onClick={() => removeAttribute(attr.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  <span className="text-xs text-gray-700">{attr.name}: {attr.type}</span>
                 </div>
               ))}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={newAttribute.name}
-                  onChange={(e) => setNewAttribute({ ...newAttribute, name: e.target.value })}
-                  className="no-drag bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
-                />
-                <input
-                  type="text"
-                  placeholder="Type"
-                  value={newAttribute.type}
-                  onChange={(e) => setNewAttribute({ ...newAttribute, type: e.target.value })}
-                  className="no-drag bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-blue-500"
-                />
-                <button 
-                  className="no-drag bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1"
-                  onClick={addAttribute}
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
+              <button className="no-drag text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+                <Plus className="h-2 w-2" />
+                <span>Add</span>
+              </button>
             </div>
           </div>
 
           {/* Methods Section */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-gray-300">Methods</h4>
-              <button className="no-drag text-gray-400 hover:text-white">
-                <ChevronDown className="h-3 w-3" />
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-xs font-medium text-gray-600">Methods</h4>
+              <button className="no-drag text-gray-400 hover:text-gray-600">
+                <ChevronDown className="h-2 w-2" />
               </button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {methods.map((method) => (
-                <div key={method.id} className="bg-gray-700 rounded px-2 py-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <button className="no-drag text-gray-400 hover:text-white">
-                        <Eye className="h-3 w-3" />
+                <div key={method.id} className="bg-gray-50 rounded px-1.5 py-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1">
+                      <button className="no-drag text-gray-400 hover:text-gray-600">
+                        <Eye className="h-2 w-2" />
                       </button>
-                      <span className="text-xs text-gray-300">{method.name}</span>
+                      <span className="text-xs text-gray-700">{method.name}</span>
                     </div>
-                    <button 
-                      className="no-drag text-gray-400 hover:text-white"
-                      onClick={() => removeMethod(method.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
                   </div>
-                  <div className="text-xs text-gray-400 ml-5">
-                    <div>Parameters: {method.parameters || 'none'}</div>
-                    <div>Return Type: {method.returnType}</div>
+                  <div className="text-xs text-gray-500 ml-3">
+                    <div>{method.parameters || 'no params'} → {method.returnType}</div>
                   </div>
                 </div>
               ))}
               
-              {/* Add New Method */}
-              <div className="space-y-2 bg-gray-700 rounded px-2 py-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={newMethod.name}
-                    onChange={(e) => setNewMethod({ ...newMethod, name: e.target.value })}
-                    className="no-drag bg-gray-600 text-white text-xs rounded px-2 py-1 border border-gray-500 focus:outline-none focus:border-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Return Type"
-                    value={newMethod.returnType}
-                    onChange={(e) => setNewMethod({ ...newMethod, returnType: e.target.value })}
-                    className="no-drag bg-gray-600 text-white text-xs rounded px-2 py-1 border border-gray-500 focus:outline-none focus:border-blue-500"
-                  />
-                  <button 
-                    className="no-drag bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1"
-                    onClick={addMethod}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Parameters (e.g., param1: type, param2: type)"
-                  value={newMethod.parameters}
-                  onChange={(e) => setNewMethod({ ...newMethod, parameters: e.target.value })}
-                  className="no-drag bg-gray-600 text-white text-xs rounded px-2 py-1 border border-gray-500 focus:outline-none focus:border-blue-500 w-full"
-                />
-              </div>
+              <button className="no-drag text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+                <Plus className="h-2 w-2" />
+                <span>Add Method</span>
+              </button>
             </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-end pt-2 border-t border-gray-600">
-            <User className="h-4 w-4 text-gray-400" />
           </div>
         </div>
       )}
