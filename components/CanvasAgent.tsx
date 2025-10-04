@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { LucideIcon } from 'lucide-react'
 
 interface CanvasAgentProps {
@@ -11,6 +12,7 @@ interface CanvasAgentProps {
   x: number
   y: number
   onDelete?: () => void
+  onMove?: (id: string, x: number, y: number) => void
 }
 
 export default function CanvasAgent({ 
@@ -21,15 +23,56 @@ export default function CanvasAgent({
   description, 
   x, 
   y, 
-  onDelete 
+  onDelete,
+  onMove
 }: CanvasAgentProps) {
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).tagName === 'BUTTON') return
+    setIsDragging(true)
+    setDragOffset({
+      x: e.clientX - x,
+      y: e.clientY - y
+    })
+  }
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging && onMove) {
+      const newX = e.clientX - dragOffset.x
+      const newY = e.clientY - dragOffset.y
+      onMove(id, newX, newY)
+    }
+  }
+  
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+  
+  // Add global mouse listeners when dragging
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove as any)
+      window.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove as any)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging])
+  
   return (
     <div
-      className="absolute bg-white rounded-lg shadow-lg border border-gray-200 p-4 cursor-move hover:shadow-xl transition-shadow"
+      onMouseDown={handleMouseDown}
+      className={`absolute bg-white rounded-lg shadow-lg border border-gray-200 p-4 cursor-move hover:shadow-xl transition-shadow ${
+        isDragging ? 'opacity-70 z-50' : ''
+      }`}
       style={{ 
         left: x, 
         top: y,
-        minWidth: '200px'
+        minWidth: '200px',
+        userSelect: 'none'
       }}
     >
       <div className="flex items-center justify-between mb-2">

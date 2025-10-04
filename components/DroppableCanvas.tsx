@@ -2,6 +2,7 @@
 
 import { useDrop } from 'react-dnd'
 import { useState } from 'react'
+import * as React from 'react'
 import CanvasAgent from './CanvasAgent'
 import { LucideIcon } from 'lucide-react'
 
@@ -30,15 +31,18 @@ export default function DroppableCanvas({
 }: DroppableCanvasProps) {
   const [placedAgents, setPlacedAgents] = useState<PlacedAgent[]>([])
 
+  const canvasRef = React.useRef<HTMLDivElement>(null)
+  
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'agent',
     drop: (item: any, monitor) => {
       const offset = monitor.getClientOffset()
+      const canvasElement = canvasRef.current
       
-      if (offset) {
-        // Use a simpler positioning approach
-        const x = Math.random() * 400 + 50 // Random position for now
-        const y = Math.random() * 300 + 50
+      if (offset && canvasElement) {
+        const canvasRect = canvasElement.getBoundingClientRect()
+        const x = offset.x - canvasRect.left - 100 // Center the agent
+        const y = offset.y - canvasRect.top - 40
         
         const newAgent: PlacedAgent = {
           id: `${item.id}-${Date.now()}`,
@@ -46,12 +50,11 @@ export default function DroppableCanvas({
           icon: item.icon,
           color: item.color,
           description: item.description,
-          x: Math.max(20, Math.min(x, 600)),
-          y: Math.max(20, Math.min(y, 400))
+          x: Math.max(20, x),
+          y: Math.max(20, y)
         }
         
         setPlacedAgents(prev => [...prev, newAgent])
-        return { left: 0, top: 0 }
       }
     },
     collect: (monitor) => ({
@@ -61,6 +64,14 @@ export default function DroppableCanvas({
 
   const handleDeleteAgent = (agentId: string) => {
     setPlacedAgents(prev => prev.filter(agent => agent.id !== agentId))
+  }
+
+  const handleMoveAgent = (agentId: string, x: number, y: number) => {
+    setPlacedAgents(prev =>
+      prev.map(agent =>
+        agent.id === agentId ? { ...agent, x, y } : agent
+      )
+    )
   }
 
   return (
@@ -76,7 +87,12 @@ export default function DroppableCanvas({
       
       {/* Drop Zone */}
       <div
-        ref={drop as any}
+        ref={(node) => {
+          if (node) {
+            (canvasRef as any).current = node
+            drop(node)
+          }
+        }}
         className={`absolute inset-0 transition-colors ${
           isOver ? 'bg-blue-50 bg-opacity-50' : ''
         }`}
@@ -93,6 +109,7 @@ export default function DroppableCanvas({
             x={agent.x}
             y={agent.y}
             onDelete={() => handleDeleteAgent(agent.id)}
+            onMove={handleMoveAgent}
           />
         ))}
 
