@@ -1,7 +1,7 @@
 {
   "/page": "app/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
+  "/workspace/page": "app/workspace/page.js",
   "/board/[boardId]/page": "app/board/[boardId]/page.js",
-  "/board/[boardId]/schema/[schemaId]/page": "app/board/[boardId]/schema/[schemaId]/page.js",
-  "/workspace/page": "app/workspace/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/board/[boardId]/schema/[schemaId]/page": "app/board/[boardId]/schema/[schemaId]/page.js"
 }

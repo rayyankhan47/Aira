@@ -221,10 +221,19 @@ export default function AiraWorkspace() {
     setZoom(prev => Math.max(prev / 1.2, 0.3))
   }
 
+  const handleResetView = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+  }
+
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isConnecting) {
+    if (!isConnecting) {
       setIsDragging(true)
-      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y })
+      setDragStart({ 
+        x: e.clientX - pan.x, 
+        y: e.clientY - pan.y 
+      })
+      e.preventDefault()
     }
   }
 
@@ -234,10 +243,18 @@ export default function AiraWorkspace() {
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
       })
+      e.preventDefault()
     }
   }
 
-  const handleCanvasMouseUp = () => {
+  const handleCanvasMouseUp = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setIsDragging(false)
+      e.preventDefault()
+    }
+  }
+
+  const handleCanvasMouseLeave = () => {
     setIsDragging(false)
   }
 
@@ -345,54 +362,56 @@ export default function AiraWorkspace() {
       </div>
 
       {/* Main Canvas */}
-      <div 
-        className={`absolute inset-0 canvas-container ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onMouseLeave={handleCanvasMouseUp}
-      >
-        {/* Dotted Grid Background */}
+      <div className="absolute inset-0 canvas-container">
+        {/* Dotted Grid Background - Clickable for panning */}
         <div 
-          className="absolute inset-0"
+          className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
           style={{
             backgroundImage: `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`,
             backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0'
+            transformOrigin: '0 0',
+            zIndex: 1
           }}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseLeave}
         />
 
-        {/* Zoomed and Panned Container */}
+        {/* Zoomed and Panned Container for Components */}
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0'
+            transformOrigin: '0 0',
+            zIndex: 2
           }}
         >
           {/* Task Cards */}
           {tasks.map(task => (
-            <TaskCard
-              key={task.id}
-              {...task}
-              onMove={handleTaskMove}
-              onUpdate={handleTaskUpdate}
-              onConnectionPointMouseDown={handleConnectionPointMouseDown}
-              onConnectionPointMouseUp={handleConnectionPointMouseUp}
-            />
+            <div key={task.id} className="pointer-events-auto">
+              <TaskCard
+                {...task}
+                onMove={handleTaskMove}
+                onUpdate={handleTaskUpdate}
+                onConnectionPointMouseDown={handleConnectionPointMouseDown}
+                onConnectionPointMouseUp={handleConnectionPointMouseUp}
+              />
+            </div>
           ))}
 
           {/* UML Cards */}
           {umls.map(uml => (
-            <UMLCard
-              key={uml.id}
-              {...uml}
-              onMove={handleUMLMove}
-              onUpdate={handleUMLUpdate}
-              onConnectionPointMouseDown={handleConnectionPointMouseDown}
-              onConnectionPointMouseUp={handleConnectionPointMouseUp}
-            />
+            <div key={uml.id} className="pointer-events-auto">
+              <UMLCard
+                {...uml}
+                onMove={handleUMLMove}
+                onUpdate={handleUMLUpdate}
+                onConnectionPointMouseDown={handleConnectionPointMouseDown}
+                onConnectionPointMouseUp={handleConnectionPointMouseUp}
+              />
+            </div>
           ))}
 
           {/* Connections */}
@@ -452,7 +471,7 @@ export default function AiraWorkspace() {
           <ZoomIn className="h-4 w-4" />
         </button>
         <button 
-          onClick={() => setZoom(1)}
+          onClick={handleResetView}
           className="p-2 bg-white hover:bg-gray-50 text-gray-600 rounded-lg shadow-sm transition-colors"
         >
           <Maximize className="h-4 w-4" />
