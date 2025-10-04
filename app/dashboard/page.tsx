@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Brain, Plus, FolderOpen, Users, Calendar, Settings } from 'lucide-react'
+import { Plus, FolderOpen, Users, Calendar, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 interface AiraBoard {
@@ -27,7 +27,7 @@ export default function Dashboard() {
         {
           id: 'mchacks-2025',
           name: 'McHacks 2025',
-          description: 'The world famous McHacks Hackathon! Building Aira - the agentic AI workspace.',
+          description: 'The world famous McHacks Hackathon! Building Aira - the visual workspace for project management.',
           is_public: false,
           member_count: 1,
           schema_count: 3,
@@ -45,7 +45,7 @@ export default function Dashboard() {
         {
           id: 'ai-research',
           name: 'AI Research Paper',
-          description: 'Academic research on agentic AI systems and their applications in project management.',
+          description: 'Academic research on visual project management systems and their applications.',
           is_public: false,
           member_count: 2,
           schema_count: 1,
@@ -71,35 +71,37 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <Brain className="h-12 w-12 text-blue-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-300 font-notion">Loading your Aira Boards...</p>
+          <div className="h-12 w-12 bg-blue-100 rounded-full mx-auto mb-4 animate-pulse flex items-center justify-center">
+            <FolderOpen className="h-6 w-6 text-blue-600" />
+          </div>
+          <p className="text-gray-600 font-notion">Loading your Aira Boards...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+      <header className="bg-gray-50 border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-600/20 rounded-xl backdrop-blur-sm">
-              <Brain className="h-8 w-8 text-blue-400" />
+            <div className="p-2 bg-blue-100 rounded-xl">
+              <FolderOpen className="h-8 w-8 text-blue-600" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-notion">
+            <span className="text-2xl font-bold text-gray-900 font-notion">
               Aira
             </span>
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button variant="outline" className="font-notion bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
+            <Button variant="outline" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
-            <Button className="font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0">
+            <Button className="font-notion bg-blue-600 hover:bg-blue-700 text-white border-0">
               <Plus className="h-4 w-4 mr-2" />
               Create Board
             </Button>
@@ -111,11 +113,11 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white font-notion mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 font-notion mb-2">
             Welcome back! 👋
           </h1>
-          <p className="text-gray-400 font-notion">
-            Manage your agentic AI workflows across all your projects
+          <p className="text-gray-600 font-notion">
+            Manage your projects and workflows with visual task management
           </p>
         </div>
 
@@ -127,24 +129,24 @@ export default function Dashboard() {
               href={`/board/${board.id}`}
               className="block"
             >
-              <div className="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors border border-gray-700 hover:border-gray-600">
+              <div className="bg-white rounded-xl p-6 hover:bg-gray-50 transition-colors border border-gray-200 hover:border-gray-300 shadow-sm">
                 {/* Board Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-600/20 rounded-lg">
-                      <FolderOpen className="h-5 w-5 text-blue-400" />
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FolderOpen className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white font-notion">
+                      <h3 className="text-lg font-semibold text-gray-900 font-notion">
                         {board.name}
                       </h3>
                       <div className="flex items-center space-x-2 mt-1">
                         {board.is_public ? (
-                          <span className="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded-full border border-green-700">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full border border-green-200">
                             Public
                           </span>
                         ) : (
-                          <span className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full border border-gray-600">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full border border-gray-200">
                             Private
                           </span>
                         )}
@@ -154,7 +156,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Board Description */}
-                <p className="text-gray-400 font-notion text-sm mb-4 line-clamp-2">
+                <p className="text-gray-600 font-notion text-sm mb-4 line-clamp-2">
                   {board.description}
                 </p>
 
@@ -166,7 +168,7 @@ export default function Dashboard() {
                       <span>{board.member_count}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Brain className="h-4 w-4" />
+                      <FolderOpen className="h-4 w-4" />
                       <span>{board.schema_count} schemas</span>
                     </div>
                   </div>
@@ -180,16 +182,16 @@ export default function Dashboard() {
           ))}
 
           {/* Create New Board Card */}
-          <div className="bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-xl p-6 hover:border-gray-500 transition-colors cursor-pointer">
+          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-gray-400 transition-colors cursor-pointer">
             <div className="text-center">
-              <div className="p-3 bg-gray-700 rounded-lg w-fit mx-auto mb-4">
-                <Plus className="h-6 w-6 text-gray-400" />
+              <div className="p-3 bg-gray-200 rounded-lg w-fit mx-auto mb-4">
+                <Plus className="h-6 w-6 text-gray-500" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-300 font-notion mb-2">
+              <h3 className="text-lg font-semibold text-gray-700 font-notion mb-2">
                 Create New Board
               </h3>
               <p className="text-gray-500 font-notion text-sm">
-                Start a new project with agentic AI workflows
+                Start a new project with visual task management
               </p>
             </div>
           </div>
@@ -198,14 +200,14 @@ export default function Dashboard() {
         {/* Empty State (if no boards) */}
         {boards.length === 0 && (
           <div className="text-center py-12">
-            <Brain className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-400 font-notion mb-2">
+            <FolderOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 font-notion mb-2">
               No Aira Boards yet
             </h3>
             <p className="text-gray-500 font-notion mb-6">
-              Create your first board to start building agentic AI workflows
+              Create your first board to start managing your projects
             </p>
-            <Button className="font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0">
+            <Button className="font-notion bg-blue-600 hover:bg-blue-700 text-white border-0">
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Board
             </Button>

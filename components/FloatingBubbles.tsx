@@ -2,6 +2,15 @@
 
 import { useEffect, useRef } from 'react'
 
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 59, g: 130, b: 246 } // Default blue
+}
+
 interface Bubble {
   id: number
   x: number
@@ -11,6 +20,7 @@ interface Bubble {
   speedY: number
   opacity: number
   blur: number
+  color: string
 }
 
 export default function FloatingBubbles() {
@@ -36,6 +46,7 @@ export default function FloatingBubbles() {
     // Create bubbles
     const createBubbles = () => {
       bubblesRef.current = []
+      const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'] // Red, Blue, Green, Yellow
       for (let i = 0; i < 15; i++) {
         bubblesRef.current.push({
           id: i,
@@ -45,7 +56,8 @@ export default function FloatingBubbles() {
           speedX: (Math.random() - 0.5) * 0.5,
           speedY: (Math.random() - 0.5) * 0.3,
           opacity: Math.random() * 0.3 + 0.1,
-          blur: Math.random() * 3 + 1
+          blur: Math.random() * 3 + 1,
+          color: colors[Math.floor(Math.random() * colors.length)]
         })
       }
     }
@@ -76,9 +88,11 @@ export default function FloatingBubbles() {
           bubble.size
         )
         
-        gradient.addColorStop(0, `rgba(59, 130, 246, ${bubble.opacity})`) // Blue center
-        gradient.addColorStop(0.7, `rgba(59, 130, 246, ${bubble.opacity * 0.6})`) // Blue middle
-        gradient.addColorStop(1, `rgba(59, 130, 246, 0)`) // Transparent edge
+        const color = bubble.color
+        const rgb = hexToRgb(color)
+        gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${bubble.opacity})`) // Colored center
+        gradient.addColorStop(0.7, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${bubble.opacity * 0.6})`) // Colored middle
+        gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`) // Transparent edge
 
         ctx.filter = `blur(${bubble.blur}px)`
         ctx.fillStyle = gradient

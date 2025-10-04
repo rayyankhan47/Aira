@@ -1,4 +1,7 @@
 {
+  "/dashboard/page": "app/dashboard/page.js",
+  "/board/[boardId]/page": "app/board/[boardId]/page.js",
   "/workspace/page": "app/workspace/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/board/[boardId]/schema/[schemaId]/page": "app/board/[boardId]/schema/[schemaId]/page.js"
 }
