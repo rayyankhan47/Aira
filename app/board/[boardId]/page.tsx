@@ -49,34 +49,14 @@ export default function BoardPage() {
       
       setSchemas([
         {
-          id: 'task-management',
-          name: 'Task Management',
-          description: 'Visual task tracking and project management with drag-and-drop interface',
-          type: 'task-management',
+          id: 'creating-aira',
+          name: 'Creating Aira',
+          description: 'Building the visual workspace for project management with drag-and-drop interface',
+          type: 'project-planning',
           created_at: '2025-01-26T10:00:00Z',
           updated_at: '2025-01-26T15:30:00Z',
-          task_count: 8,
-          diagram_count: 0
-        },
-        {
-          id: 'uml-design',
-          name: 'UML Design',
-          description: 'System architecture and UML diagram design',
-          type: 'uml-design',
-          created_at: '2025-01-26T11:00:00Z',
-          updated_at: '2025-01-26T14:20:00Z',
-          task_count: 3,
-          diagram_count: 5
-        },
-        {
-          id: 'project-planning',
-          name: 'Project Planning',
-          description: 'Mixed workspace combining task management with system design',
-          type: 'project-planning',
-          created_at: '2025-01-26T12:00:00Z',
-          updated_at: '2025-01-26T16:45:00Z',
-          task_count: 12,
-          diagram_count: 2
+          task_count: 6,
+          diagram_count: 3
         }
       ])
       
