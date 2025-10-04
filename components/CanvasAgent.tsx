@@ -13,8 +13,8 @@ interface CanvasAgentProps {
   y: number
   onDelete?: () => void
   onMove?: (id: string, x: number, y: number) => void
-  onConnectionPointMouseDown?: (agentId: string, x: number, y: number) => void
-  onConnectionPointMouseUp?: (agentId: string, x: number, y: number) => void
+  onConnectionPointMouseDown?: (agentId: string, x: number, y: number, pointType: 'left' | 'right') => void
+  onConnectionPointMouseUp?: (agentId: string, x: number, y: number, pointType: 'left' | 'right') => void
 }
 
 export default function CanvasAgent({ 
@@ -103,26 +103,48 @@ export default function CanvasAgent({
         className="connection-point absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-600 transition-colors"
         onMouseDown={(e) => {
           e.stopPropagation()
-          // Left connection point: x-8 (left edge - 8px for circle center), y+40 (middle of agent)
-          onConnectionPointMouseDown?.(id, x - 8, y + 40)
+          // Get actual position of the connection point
+          const rect = e.currentTarget.getBoundingClientRect()
+          const canvasRect = (e.currentTarget.closest('.canvas-container') as HTMLElement)?.getBoundingClientRect()
+          if (canvasRect) {
+            const actualX = rect.left + rect.width / 2 - canvasRect.left
+            const actualY = rect.top + rect.height / 2 - canvasRect.top
+            onConnectionPointMouseDown?.(id, actualX, actualY, 'left')
+          }
         }}
         onMouseUp={(e) => {
           e.stopPropagation()
-          onConnectionPointMouseUp?.(id, x - 8, y + 40)
+          const rect = e.currentTarget.getBoundingClientRect()
+          const canvasRect = (e.currentTarget.closest('.canvas-container') as HTMLElement)?.getBoundingClientRect()
+          if (canvasRect) {
+            const actualX = rect.left + rect.width / 2 - canvasRect.left
+            const actualY = rect.top + rect.height / 2 - canvasRect.top
+            onConnectionPointMouseUp?.(id, actualX, actualY, 'left')
+          }
         }}
       ></div>
       <div 
         className="connection-point absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-600 transition-colors"
         onMouseDown={(e) => {
           e.stopPropagation()
-          // Right connection point: x + agent width + 8px (for circle center)
-          const agentWidth = 200 // This should match the minWidth
-          onConnectionPointMouseDown?.(id, x + agentWidth + 8, y + 40)
+          // Get actual position of the connection point
+          const rect = e.currentTarget.getBoundingClientRect()
+          const canvasRect = (e.currentTarget.closest('.canvas-container') as HTMLElement)?.getBoundingClientRect()
+          if (canvasRect) {
+            const actualX = rect.left + rect.width / 2 - canvasRect.left
+            const actualY = rect.top + rect.height / 2 - canvasRect.top
+            onConnectionPointMouseDown?.(id, actualX, actualY, 'right')
+          }
         }}
         onMouseUp={(e) => {
           e.stopPropagation()
-          const agentWidth = 200
-          onConnectionPointMouseUp?.(id, x + agentWidth + 8, y + 40)
+          const rect = e.currentTarget.getBoundingClientRect()
+          const canvasRect = (e.currentTarget.closest('.canvas-container') as HTMLElement)?.getBoundingClientRect()
+          if (canvasRect) {
+            const actualX = rect.left + rect.width / 2 - canvasRect.left
+            const actualY = rect.top + rect.height / 2 - canvasRect.top
+            onConnectionPointMouseUp?.(id, actualX, actualY, 'right')
+          }
         }}
       ></div>
     </div>

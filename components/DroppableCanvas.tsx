@@ -25,6 +25,8 @@ interface Connection {
   fromY: number
   toX: number
   toY: number
+  fromPointType?: 'left' | 'right'
+  toPointType?: 'left' | 'right'
 }
 
 interface DroppableCanvasProps {
@@ -43,7 +45,7 @@ export default function DroppableCanvas({
   const [placedAgents, setPlacedAgents] = useState<PlacedAgent[]>([])
   const [connections, setConnections] = useState<Connection[]>([])
   const [isConnecting, setIsConnecting] = useState(false)
-  const [connectionStart, setConnectionStart] = useState<{agentId: string, x: number, y: number} | null>(null)
+  const [connectionStart, setConnectionStart] = useState<{agentId: string, x: number, y: number, pointType: 'left' | 'right'} | null>(null)
   const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null)
 
   const canvasRef = React.useRef<HTMLDivElement>(null)
@@ -124,14 +126,14 @@ export default function DroppableCanvas({
     }
   }, [isConnecting])
 
-  const handleConnectionPointMouseDown = (agentId: string, x: number, y: number) => {
-    console.log('Mouse down on agent:', agentId, 'position:', x, y)
+  const handleConnectionPointMouseDown = (agentId: string, x: number, y: number, pointType: 'left' | 'right') => {
+    console.log('Mouse down on agent:', agentId, 'position:', x, y, 'pointType:', pointType)
     setIsConnecting(true)
-    setConnectionStart({ agentId, x, y })
+    setConnectionStart({ agentId, x, y, pointType })
     setMousePosition({ x, y })
   }
 
-  const handleConnectionPointMouseUp = (agentId: string, x: number, y: number) => {
+  const handleConnectionPointMouseUp = (agentId: string, x: number, y: number, pointType: 'left' | 'right') => {
     console.log('Mouse up on agent:', agentId, 'isConnecting:', isConnecting, 'connectionStart:', connectionStart)
     if (isConnecting && connectionStart && connectionStart.agentId !== agentId) {
       const newConnection: Connection = {
@@ -141,7 +143,9 @@ export default function DroppableCanvas({
         fromX: connectionStart.x,
         fromY: connectionStart.y,
         toX: x,
-        toY: y
+        toY: y,
+        fromPointType: connectionStart.pointType,
+        toPointType: pointType
       }
       console.log('Creating connection:', newConnection)
       setConnections(prev => [...prev, newConnection])
@@ -157,13 +161,9 @@ export default function DroppableCanvas({
         const fromAgent = placedAgents.find(a => a.id === conn.fromAgentId)
         const toAgent = placedAgents.find(a => a.id === conn.toAgentId)
         if (fromAgent && toAgent) {
-          return {
-            ...conn,
-            fromX: fromAgent.x + 200 + 8, // Right connection point
-            fromY: fromAgent.y + 40,      // Middle of agent
-            toX: toAgent.x - 8,           // Left connection point
-            toY: toAgent.y + 40           // Middle of agent
-          }
+          // For now, keep the stored coordinates since they were calculated dynamically
+          // The connection positions should already be accurate from the initial creation
+          return conn
         }
         return conn
       })
@@ -171,7 +171,7 @@ export default function DroppableCanvas({
   }
 
   return (
-    <div className="flex-1 bg-white relative overflow-hidden">
+    <div className="flex-1 bg-white relative overflow-hidden canvas-container">
       {/* Canvas with dots pattern */}
       <div 
         className="absolute inset-0"
