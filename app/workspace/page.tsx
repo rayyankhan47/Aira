@@ -25,6 +25,7 @@ export default function Workspace() {
   
   const [project, setProject] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -98,17 +99,28 @@ export default function Workspace() {
         {/* Top Header */}
         <header className="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900">
+            {saveStatus === 'saving' ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled
+                className="font-notion bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-            </Link>
-            
-            <div className="flex items-center space-x-2">
-              <Brain className="h-6 w-6 text-blue-600" />
-              <span className="text-lg font-semibold text-gray-900 font-notion">Aira</span>
-            </div>
+            ) : (
+              <Link href="/dashboard">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+            )}
             
             {/* Project Info */}
             <div className="flex items-center space-x-2">
@@ -118,10 +130,6 @@ export default function Workspace() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900">
-              <Save className="h-4 w-4 mr-2" />
-              Auto-saved
-            </Button>
             <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900">
               <Settings className="h-4 w-4" />
             </Button>
@@ -133,6 +141,7 @@ export default function Workspace() {
           <AiraWorkspace 
             projectId={projectId!}
             initialWorkspaceData={project.workspaceData}
+            onSaveStatusChange={setSaveStatus}
           />
         </div>
       </div>

@@ -154,18 +154,29 @@ const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }
   )
 }
 
-export default function AiraWorkspace({ projectId, initialWorkspaceData }: { 
+export default function AiraWorkspace({ 
+  projectId, 
+  initialWorkspaceData,
+  onSaveStatusChange
+}: { 
   projectId?: string
   initialWorkspaceData?: {
     tasks: any[]
     umlDiagrams: any[]
     connections: any[]
   }
+  onSaveStatusChange?: (status: 'saved' | 'saving' | 'error') => void
 } = {}) {
   const [newComponentId, setNewComponentId] = useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
   const lastSavedRef = useRef<string>('')
   const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Notify parent component when save status changes
+  useEffect(() => {
+    onSaveStatusChange?.(saveStatus)
+  }, [saveStatus, onSaveStatusChange])
 
   // Define custom edge types for better animations
   const edgeTypes = useMemo(() => ({}), [])
@@ -447,6 +458,7 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
   const savePositionChanges = useCallback(async () => {
     if (!projectId) return
     
+    setSaveStatus('saving')
     try {
       // Helper function to remove undefined values
       const removeUndefinedValues = (obj: any) => {
@@ -501,12 +513,10 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
       })
 
       await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Position changes saved to Firebase')
-        console.log('Saved position data:', workspaceData)
-      }
+      setSaveStatus('saved')
     } catch (error) {
       console.error('Error saving position changes:', error)
+      setSaveStatus('error')
     }
   }, [projectId, nodes, edges])
 
@@ -558,9 +568,7 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
         }
         
         const timeoutId = setTimeout(async () => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Saving workspace data...')
-          }
+          setSaveStatus('saving')
           
           // Inline save logic to avoid dependency issues
           try {
@@ -617,16 +625,11 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
             })
 
             await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Successfully saved to Firebase')
-              console.log('Saved data:', workspaceData)
-              if (tasks.length > 0) {
-                console.log('First saved task:', JSON.stringify(tasks[0], null, 2))
-              }
-            }
+            setSaveStatus('saved')
             lastSavedRef.current = currentState
           } catch (error) {
             console.error('Error saving workspace data:', error)
+            setSaveStatus('error')
           }
         }, 2000) // Increased debounce to 2 seconds to prevent rapid saves
         
@@ -642,7 +645,7 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
   useEffect(() => {
     return () => {
       if (projectId && (nodes.length > 0 || edges.length > 0)) {
-        console.log('Component unmounting - saving immediately')
+        setSaveStatus('saving')
         // Force immediate save without debounce
         setTimeout(async () => {
           try {
@@ -697,9 +700,10 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
             })
 
             await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
-            console.log('Immediate save on unmount completed')
+            setSaveStatus('saved')
           } catch (error) {
             console.error('Error in immediate save on unmount:', error)
+            setSaveStatus('error')
           }
         }, 100) // Very short delay to ensure state is stable
       }
@@ -813,6 +817,19 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
       {/* Add styles to reduce passive event listener warnings */}
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="h-full bg-white relative">
+        {/* Save Status Indicator */}
+        <div className="absolute top-4 right-4 z-20">
+          <div className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+            saveStatus === 'saving' 
+              ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' 
+              : saveStatus === 'error'
+              ? 'bg-red-100 text-red-800 border border-red-300'
+              : 'bg-green-100 text-green-800 border border-green-300'
+          }`}>
+            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'error' ? 'Save Error' : 'Saved!'}
+          </div>
+        </div>
+        
         {/* Add Buttons */}
       <div className="absolute top-4 left-4 flex space-x-2 z-10">
           <button

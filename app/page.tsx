@@ -16,19 +16,26 @@ export default function Home() {
         
         {/* Header */}
         <header className="relative z-20 p-6">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl font-bold text-black font-notion">
-                Aira
-              </span>
-            </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">Features</a>
-              <a href="#integrations" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">Integrations</a>
-              <a href="#ai-power" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">AI Power</a>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <AuthButton />
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center relative">
+              {/* Left side - Logo */}
+              <div className="absolute left-0 flex items-center space-x-3">
+                <span className="text-2xl font-bold text-black font-notion">
+                  Aira
+                </span>
+              </div>
+              
+              {/* Center - Navigation */}
+              <nav className="hidden md:flex items-center space-x-8">
+                <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">Features</a>
+                <a href="#integrations" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">Integrations</a>
+                <a href="#ai-power" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">AI Power</a>
+              </nav>
+              
+              {/* Right side - Auth Button */}
+              <div className="absolute right-0 flex items-center space-x-4">
+                <AuthButton />
+              </div>
             </div>
           </div>
         </header>
