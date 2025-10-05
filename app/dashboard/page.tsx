@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [showCoupleModal, setShowCoupleModal] = useState<string | null>(null)
   const [selectedWorkflowIds, setSelectedWorkflowIds] = useState<string[]>([])
   const [originalWorkflowIds, setOriginalWorkflowIds] = useState<string[]>([])
+  const [deletingWorkflowId, setDeletingWorkflowId] = useState<string | null>(null)
 
   const loadUserProjects = async () => {
     if (!user) return
@@ -158,6 +159,38 @@ export default function Dashboard() {
 
   const hasChanges = () => {
     return JSON.stringify(selectedWorkflowIds.sort()) !== JSON.stringify(originalWorkflowIds.sort())
+  }
+
+  const handleDeleteAgenticWorkflow = async (workflowId: string, workflowName: string) => {
+    const confirmed = confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)
+    if (!confirmed) return
+
+    setDeletingWorkflowId(workflowId)
+    try {
+      await FirebaseService.deleteAgenticWorkflow(workflowId)
+      
+      // Remove from local state
+      setAgenticAiras(prev => prev.filter(workflow => workflow.id !== workflowId))
+      
+      // Remove from any coupled projects
+      const updatedBoards = boards.map((board: any) => {
+        if (board.coupledAgenticWorkflowIds?.includes(workflowId)) {
+          return {
+            ...board,
+            coupledAgenticWorkflowIds: board.coupledAgenticWorkflowIds.filter((id: string) => id !== workflowId)
+          }
+        }
+        return board
+      })
+      setBoards(updatedBoards)
+      
+      alert('Agentic workflow deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting agentic workflow:', error)
+      alert('Error deleting agentic workflow')
+    } finally {
+      setDeletingWorkflowId(null)
+    }
   }
 
   if (isLoading) {
@@ -385,6 +418,18 @@ export default function Dashboard() {
                     <Bot className="h-5 w-5 mr-2 text-purple-600" />
                     {agenticAira.name}
                   </h3>
+                  <button
+                    onClick={() => handleDeleteAgenticWorkflow(agenticAira.id, agenticAira.name)}
+                    disabled={deletingWorkflowId === agenticAira.id}
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete workflow"
+                  >
+                    {deletingWorkflowId === agenticAira.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
                 <p className="text-gray-600 mb-4">
                   {agenticAira.description}

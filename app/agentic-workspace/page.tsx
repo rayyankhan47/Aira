@@ -1,12 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Save, Play, Bot, Zap, FileText, MessageSquare, Brain, Filter, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { FirebaseService, AgenticWorkflow } from '@/lib/firebase-service'
 import { useRouter, useSearchParams } from 'next/navigation'
+import ReactFlow, { 
+  Node, 
+  Edge, 
+  addEdge, 
+  useNodesState, 
+  useEdgesState, 
+  Controls, 
+  Background, 
+  BackgroundVariant,
+  ConnectionMode,
+  MiniMap,
+  Panel,
+  MarkerType
+} from 'reactflow'
+import 'reactflow/dist/style.css'
 
 interface AgenticNode {
   id: string
@@ -17,25 +32,7 @@ interface AgenticNode {
   color: string
 }
 
-interface WorkflowNode {
-  id: string
-  type: string
-  position: { x: number; y: number }
-  data: {
-    label: string
-    nodeType: 'input' | 'processing' | 'output'
-    title: string
-    description: string
-  }
-}
-
-interface WorkflowEdge {
-  id: string
-  source: string
-  target: string
-  sourceHandle?: string
-  targetHandle?: string
-}
+import AgenticWorkflowNode from '@/components/AgenticWorkflowNode'
 
 export default function AgenticWorkspace() {
   const { user, loading: authLoading } = useAuth()
@@ -45,13 +42,53 @@ export default function AgenticWorkspace() {
 
   const [workflowName, setWorkflowName] = useState('Untitled Workflow')
   const [workflowDescription, setWorkflowDescription] = useState('')
-  const [nodes, setNodes] = useState<WorkflowNode[]>([])
-  const [edges, setEdges] = useState<WorkflowEdge[]>([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Available node types
-  const nodeTypes: AgenticNode[] = [
+  // Handle connections
+  const onConnect = useCallback((params: any) => {
+    setEdges((eds) => addEdge(params, eds))
+  }, [setEdges])
+
+  // Add node to canvas
+  const addNodeToCanvas = useCallback((nodeType: AgenticNode) => {
+    const newNode: Node = {
+      id: `${nodeType.id}-${Date.now()}`,
+      type: 'agenticNode',
+      position: { 
+        x: Math.random() * 400 + 100, 
+        y: Math.random() * 300 + 100 
+      },
+      data: {
+        type: nodeType.id,
+        title: nodeType.title,
+        description: nodeType.description,
+        nodeType: nodeType.type,
+        label: nodeType.title,
+      },
+    }
+    setNodes((nds) => [...nds, newNode])
+  }, [setNodes])
+
+  // Delete node from canvas
+  const deleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId))
+    // Also remove any edges connected to this node
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
+  }, [setNodes, setEdges])
+
+  // Create nodeTypes with delete handler
+  const nodeTypes = useMemo(() => ({
+    agenticNode: (props: any) => <AgenticWorkflowNode {...props} onDelete={deleteNode} />
+  }), [deleteNode])
+
+  // Create edge types with arrowheads
+  const edgeTypes = useMemo(() => ({}), [])
+
+  // Available node types for the sidebar
+  const availableNodeTypes: AgenticNode[] = [
     // Input Nodes
     {
       id: 'task-created',
@@ -200,40 +237,6 @@ export default function AgenticWorkspace() {
     alert('Testing workflow... (Feature coming soon!)')
   }
 
-  const handleDragStart = (event: React.DragEvent, nodeType: AgenticNode) => {
-    event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeType))
-    event.dataTransfer.effectAllowed = 'move'
-  }
-
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-  }
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    
-    const nodeType = JSON.parse(event.dataTransfer.getData('application/reactflow'))
-    const rect = event.currentTarget.getBoundingClientRect()
-    const position = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
-    }
-
-    const newNode: WorkflowNode = {
-      id: `node-${Date.now()}`,
-      type: nodeType.id,
-      position,
-      data: {
-        label: nodeType.title,
-        nodeType: nodeType.type,
-        title: nodeType.title,
-        description: nodeType.description
-      }
-    }
-
-    setNodes(prev => [...prev, newNode])
-  }
 
   if (isLoading) {
     return (
@@ -317,14 +320,13 @@ export default function AgenticWorkspace() {
           <div className="mb-6">
             <h4 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Input Nodes</h4>
             <div className="space-y-2">
-              {nodeTypes.filter(node => node.type === 'input').map((nodeType) => {
+              {availableNodeTypes.filter(node => node.type === 'input').map((nodeType) => {
                 const IconComponent = nodeType.icon
                 return (
                   <div
                     key={nodeType.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, nodeType)}
-                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-move hover:bg-gray-50 transition-colors"
+                    onClick={() => addNodeToCanvas(nodeType)}
+                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <div className={`w-8 h-8 ${nodeType.color} rounded-lg flex items-center justify-center mr-3`}>
                       <IconComponent className="h-4 w-4 text-white" />
@@ -343,14 +345,13 @@ export default function AgenticWorkspace() {
           <div className="mb-6">
             <h4 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Processing Nodes</h4>
             <div className="space-y-2">
-              {nodeTypes.filter(node => node.type === 'processing').map((nodeType) => {
+              {availableNodeTypes.filter(node => node.type === 'processing').map((nodeType) => {
                 const IconComponent = nodeType.icon
                 return (
                   <div
                     key={nodeType.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, nodeType)}
-                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-move hover:bg-gray-50 transition-colors"
+                    onClick={() => addNodeToCanvas(nodeType)}
+                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <div className={`w-8 h-8 ${nodeType.color} rounded-lg flex items-center justify-center mr-3`}>
                       <IconComponent className="h-4 w-4 text-white" />
@@ -369,14 +370,13 @@ export default function AgenticWorkspace() {
           <div className="mb-6">
             <h4 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Output Nodes</h4>
             <div className="space-y-2">
-              {nodeTypes.filter(node => node.type === 'output').map((nodeType) => {
+              {availableNodeTypes.filter(node => node.type === 'output').map((nodeType) => {
                 const IconComponent = nodeType.icon
                 return (
                   <div
                     key={nodeType.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, nodeType)}
-                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-move hover:bg-gray-50 transition-colors"
+                    onClick={() => addNodeToCanvas(nodeType)}
+                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <div className={`w-8 h-8 ${nodeType.color} rounded-lg flex items-center justify-center mr-3`}>
                       <IconComponent className="h-4 w-4 text-white" />
@@ -392,116 +392,57 @@ export default function AgenticWorkspace() {
           </div>
         </div>
 
-        {/* Canvas Area */}
-        <div className="flex-1 relative">
-          <div
-            className="w-full h-full bg-white"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
+        {/* React Flow Canvas */}
+        <div className="flex-1">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            connectionMode={ConnectionMode.Loose}
+            fitView
+            className="bg-gray-50"
+            defaultEdgeOptions={{
+              type: 'smoothstep',
+              style: { stroke: '#3b82f6', strokeWidth: 2 },
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: '#3b82f6',
+              },
+            }}
           >
-            {/* Canvas Grid */}
-            <div className="w-full h-full bg-gray-50" style={{
-              backgroundImage: `
-                radial-gradient(circle, #e5e7eb 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px'
-            }}>
-              {/* Render Nodes */}
-              {nodes.map((node) => {
-                const nodeType = nodeTypes.find(nt => nt.id === node.type)
-                if (!nodeType) return null
-
-                const IconComponent = nodeType.icon
-                return (
-                  <div
-                    key={node.id}
-                    className="absolute bg-white border-2 border-gray-200 rounded-lg p-4 shadow-sm cursor-move hover:shadow-md transition-shadow"
-                    style={{
-                      left: node.position.x,
-                      top: node.position.y,
-                      minWidth: '200px'
-                    }}
-                  >
-                    <div className="flex items-center mb-2">
-                      <div className={`w-6 h-6 ${nodeType.color} rounded-lg flex items-center justify-center mr-2`}>
-                        <IconComponent className="h-3 w-3 text-white" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{node.data.label}</span>
-                    </div>
-                    <p className="text-xs text-gray-500">{node.data.description}</p>
-                  </div>
-                )
-              })}
-
-              {/* Render Edges */}
-              <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-                {edges.map((edge) => {
-                  const sourceNode = nodes.find(n => n.id === edge.source)
-                  const targetNode = nodes.find(n => n.id === edge.target)
-                  
-                  if (!sourceNode || !targetNode) return null
-
-                  const startX = sourceNode.position.x + 200 // Right edge of source
-                  const startY = sourceNode.position.y + 50  // Middle of source
-                  const endX = targetNode.position.x         // Left edge of target
-                  const endY = targetNode.position.y + 50    // Middle of target
-
-                  return (
-                    <line
-                      key={edge.id}
-                      x1={startX}
-                      y1={startY}
-                      x2={endX}
-                      y2={endY}
-                      stroke="#3B82F6"
-                      strokeWidth="2"
-                      markerEnd="url(#arrowhead)"
-                    />
-                  )
-                })}
-                <defs>
-                  <marker
-                    id="arrowhead"
-                    markerWidth="10"
-                    markerHeight="7"
-                    refX="9"
-                    refY="3.5"
-                    orient="auto"
-                  >
-                    <polygon
-                      points="0 0, 10 3.5, 0 7"
-                      fill="#3B82F6"
-                    />
-                  </marker>
-                </defs>
-              </svg>
-
-              {/* Empty State */}
-              {nodes.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <Bot className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Build Your Agentic Workflow</h3>
-                    <p className="text-gray-500 mb-6">Drag nodes from the sidebar to create your AI automation workflow</p>
-                    <div className="flex items-center justify-center space-x-4 text-sm text-gray-400">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                        Input
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                        Processing
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        Output
-                      </div>
-                    </div>
-                  </div>
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+            <Controls />
+            <MiniMap 
+              nodeColor={(node) => {
+                const colorMap: { [key: string]: string } = {
+                  'task-created': '#3b82f6',
+                  'task-completed': '#3b82f6', 
+                  'ai-analyze': '#8b5cf6',
+                  'ai-generate': '#8b5cf6',
+                  'ai-categorize': '#8b5cf6',
+                  'update-notion': '#10b981',
+                  'post-discord': '#10b981',
+                }
+                return colorMap[node.data?.type] || '#6b7280'
+              }}
+              nodeStrokeWidth={3}
+              nodeBorderRadius={2}
+              zoomable
+              pannable
+            />
+            <Panel position="top-right">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                <div className="text-sm font-medium text-gray-900 mb-1">Workflow Stats</div>
+                <div className="text-xs text-gray-600">
+                  {nodes.length} nodes • {edges.length} connections
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </Panel>
+          </ReactFlow>
         </div>
       </div>
     </div>
