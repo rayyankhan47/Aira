@@ -1,7 +1,7 @@
 {
   "/not-found": "app/not-found.js",
-  "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js",
   "/agentic-workspace/page": "app/agentic-workspace/page.js",
   "/workspace/page": "app/workspace/page.js"
 }

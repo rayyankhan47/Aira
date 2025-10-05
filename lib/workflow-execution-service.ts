@@ -22,6 +22,7 @@ export interface WorkflowNode {
   id: string
   type: string
   data: {
+    type: string
     label: string
     nodeType: 'input' | 'processing' | 'output'
     title: string
@@ -42,22 +43,40 @@ export class WorkflowExecutionService {
    * Main execution function - called when user navigates back from workspace
    */
   static async executeCoupledWorkflows(projectId: string, projectData: any): Promise<void> {
+    console.log('🚀 WorkflowExecutionService.executeCoupledWorkflows called')
+    console.log('📊 Project ID:', projectId)
+    console.log('📊 Project Data:', projectData)
+    
     try {
       // Get the project to find coupled workflows
       const project = await FirebaseService.getProject(projectId)
+      console.log('📊 Retrieved project:', project)
+      
       if (!project || !project.coupledAgenticWorkflowIds || project.coupledAgenticWorkflowIds.length === 0) {
+        console.log('❌ No coupled workflows found for project:', projectId)
         return // No coupled workflows
       }
+      
+      console.log('✅ Found coupled workflows:', project.coupledAgenticWorkflowIds)
 
       // Create execution context
+      const taskCreated = this.detectTaskCreated(projectData)
+      const taskCompleted = this.detectTaskCompleted(projectData)
+      const taskUpdated = this.detectTaskUpdated(projectData)
+      
+      console.log('🔍 Trigger Events Detection:')
+      console.log('  - Task Created:', taskCreated)
+      console.log('  - Task Completed:', taskCompleted)
+      console.log('  - Task Updated:', taskUpdated)
+      
       const context: WorkflowExecutionContext = {
         projectId: project.id,
         projectName: project.name,
         projectData: projectData,
         triggerEvents: {
-          taskCreated: this.detectTaskCreated(projectData),
-          taskCompleted: this.detectTaskCompleted(projectData),
-          taskUpdated: this.detectTaskUpdated(projectData)
+          taskCreated: taskCreated,
+          taskCompleted: taskCompleted,
+          taskUpdated: taskUpdated
         }
       }
 
@@ -87,8 +106,18 @@ export class WorkflowExecutionService {
    * Execute a single workflow
    */
   private static async executeWorkflow(workflowId: string, context: WorkflowExecutionContext): Promise<void> {
+    console.log('🔄 Executing workflow:', workflowId)
+    
     const workflow = await FirebaseService.getAgenticWorkflow(workflowId)
-    if (!workflow) return
+    console.log('📊 Retrieved workflow:', workflow)
+    
+    if (!workflow) {
+      console.log('❌ Workflow not found:', workflowId)
+      return
+    }
+
+    console.log('📊 Workflow nodes:', workflow.nodes)
+    console.log('📊 Workflow edges:', workflow.edges)
 
     // Check if any input nodes are triggered
     const shouldExecute = this.shouldExecuteWorkflow(workflow, context)
@@ -128,16 +157,24 @@ export class WorkflowExecutionService {
    */
   private static shouldExecuteWorkflow(workflow: AgenticWorkflow, context: WorkflowExecutionContext): boolean {
     const inputNodes = workflow.nodes.filter(node => node.data?.nodeType === 'input')
+    console.log('🔍 Input nodes found:', inputNodes.length)
+    console.log('🔍 Input nodes:', inputNodes)
     
     for (const node of inputNodes) {
-      switch (node.type) {
+      console.log('🔍 Checking input node:', node.type, 'data.type:', node.data?.type)
+      // Check the actual node type from data.type, not the React Flow node type
+      const nodeDataType = node.data?.type
+      switch (nodeDataType) {
         case 'task-created':
+          console.log('🔍 Task created trigger:', context.triggerEvents.taskCreated)
           if (context.triggerEvents.taskCreated) return true
           break
         case 'task-completed':
+          console.log('🔍 Task completed trigger:', context.triggerEvents.taskCompleted)
           if (context.triggerEvents.taskCompleted) return true
           break
         case 'task-updated':
+          console.log('🔍 Task updated trigger:', context.triggerEvents.taskUpdated)
           if (context.triggerEvents.taskUpdated) return true
           break
       }
@@ -208,7 +245,10 @@ export class WorkflowExecutionService {
    * Execute a single node
    */
   private static async executeNode(node: WorkflowNode, context: WorkflowExecutionContext, previousResults: any): Promise<any> {
-    switch (node.type) {
+    const nodeDataType = node.data?.type
+    console.log('🔧 Executing node:', nodeDataType, 'for node:', node.id)
+    
+    switch (nodeDataType) {
       case 'ai-analyze':
         return await this.executeAIAnalyze(node, context, previousResults)
       case 'ai-generate':
@@ -220,8 +260,8 @@ export class WorkflowExecutionService {
       case 'post-discord':
         return await this.executePostDiscord(node, context, previousResults)
       default:
-        console.warn(`Unknown node type: ${node.type}`)
-        return { success: false, message: `Unknown node type: ${node.type}` }
+        console.warn(`Unknown node type: ${nodeDataType}`)
+        return { success: false, message: `Unknown node type: ${nodeDataType}` }
     }
   }
 
@@ -229,8 +269,9 @@ export class WorkflowExecutionService {
    * Event detection methods
    */
   private static detectTaskCreated(projectData: any): boolean {
-    // TODO: Implement task creation detection
-    // For now, we'll assume tasks were created if there are any tasks
+    // Check if there are any tasks in the project
+    // This is a simple implementation - in a real system you'd track creation timestamps
+    console.log('🔍 Detecting task creation - Tasks found:', projectData.tasks?.length || 0)
     return projectData.tasks && projectData.tasks.length > 0
   }
 
@@ -439,7 +480,8 @@ export class WorkflowExecutionService {
    * Helper method to check if input node should execute
    */
   private static shouldExecuteInputNode(node: WorkflowNode, context: WorkflowExecutionContext): boolean {
-    switch (node.type) {
+    const nodeDataType = node.data?.type
+    switch (nodeDataType) {
       case 'task-created':
         return context.triggerEvents.taskCreated || false
       case 'task-completed':

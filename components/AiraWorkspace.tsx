@@ -705,9 +705,11 @@ export default function AiraWorkspace({
             
             // Trigger workflow execution after successful save
             try {
+              console.log('🚀 Triggering workflow execution with workspace data:', workspaceData)
               await WorkflowExecutionService.executeCoupledWorkflows(projectId, workspaceData)
+              console.log('✅ Workflow execution completed')
             } catch (workflowError) {
-              console.error('Error executing coupled workflows:', workflowError)
+              console.error('❌ Error executing coupled workflows:', workflowError)
               // Don't fail the save if workflow execution fails
             }
           } catch (error) {
