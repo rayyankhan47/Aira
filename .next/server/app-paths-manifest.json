@@ -1,6 +1,6 @@
 {
-  "/api/discord/post-message/route": "app/api/discord/post-message/route.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/agentic-workspace/page": "app/agentic-workspace/page.js",
-  "/workspace/page": "app/workspace/page.js"
+  "/workspace/page": "app/workspace/page.js",
+  "/api/notion/update-task/route": "app/api/notion/update-task/route.js",
+  "/agentic-workspace/page": "app/agentic-workspace/page.js"
 }

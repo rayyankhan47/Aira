@@ -22,34 +22,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if page already exists
-    const searchResponse = await fetch(`https://api.notion.com/v1/databases/${notionDatabaseId}/query`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${notionApiKey}`,
-        'Content-Type': 'application/json',
-        'Notion-Version': '2022-06-28'
-      },
-      body: JSON.stringify({
-        filter: {
-          property: 'Name',
-          title: {
-            contains: task.title || 'Untitled Task'
-          }
-        }
-      })
-    })
+    // For pages, we'll always create new ones (no duplicate checking for now)
+    const existingPages = []
     
-    if (!searchResponse.ok) {
-      throw new Error(`Notion search failed: ${searchResponse.statusText}`)
-    }
-    
-    const searchResults = await searchResponse.json()
-    const existingPages = searchResults.results
-    
+    // Create page in the "Aira Work Tasks" page location
+    const airaWorkTasksPageId = '283289b1-f199-80ca-adb0-ee3d39b35183'
     let pageData: any = {
-      parent: { database_id: notionDatabaseId },
+      parent: { page_id: airaWorkTasksPageId },
       properties: {
-        'Name': {
+        title: {
           title: [
             {
               text: {
@@ -57,7 +38,7 @@ export async function POST(request: NextRequest) {
               }
             }
           ]
-        },
+        }
       }
     }
     
@@ -67,7 +48,7 @@ export async function POST(request: NextRequest) {
         ? summary.substring(0, 1500) + '...' 
         : summary
       
-      pageData.properties['Name'] = {
+      pageData.properties.title = {
         title: [
           {
             text: {
