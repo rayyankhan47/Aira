@@ -36,6 +36,10 @@ export default function Dashboard() {
     }
   }, [user])
 
+  const [showCreateProject, setShowCreateProject] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+  const [newProjectDescription, setNewProjectDescription] = useState('')
+
   const loadUserProjects = async () => {
     if (!user) return
     
@@ -52,6 +56,26 @@ export default function Dashboard() {
       console.error('Error loading projects:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newProjectName.trim() || !user) return
+
+    try {
+      const project = await FirebaseService.createProject(
+        user.uid,
+        newProjectName.trim(),
+        newProjectDescription.trim()
+      )
+      
+      setNewProjectName('')
+      setNewProjectDescription('')
+      setShowCreateProject(false)
+      loadUserProjects() // Reload projects
+    } catch (error) {
+      console.error('Error creating project:', error)
     }
   }
 
@@ -95,15 +119,69 @@ export default function Dashboard() {
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8">
-          <Button className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg font-medium">
+          <Button 
+            onClick={() => setShowCreateProject(true)}
+            className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg font-medium"
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Create Aira Board
-          </Button>
-          <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 rounded-lg font-medium">
-            <Users className="h-4 w-4 mr-2" />
-            Join Aira Board
+            Create New Project
           </Button>
         </div>
+
+        {/* Create Project Modal */}
+        {showCreateProject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Project</h3>
+              <form onSubmit={handleCreateProject}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="projectName" className="block text-sm font-medium text-gray-700">
+                      Project Name
+                    </label>
+                    <input
+                      id="projectName"
+                      type="text"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter project name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="projectDescription" className="block text-sm font-medium text-gray-700">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      id="projectDescription"
+                      value={newProjectDescription}
+                      onChange={(e) => setNewProjectDescription(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter project description"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateProject(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Create Project
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Board Card */}
         {boards.map((board) => (
@@ -131,14 +209,11 @@ export default function Dashboard() {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Link href={`/board/${board.id}`}>
+              <Link href={`/workspace?project=${board.id}`}>
                 <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium">
                   Open Project
                 </Button>
               </Link>
-              <Button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium">
-                Leave Project
-              </Button>
             </div>
           </div>
         ))}

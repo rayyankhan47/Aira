@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import {
   ReactFlow,
   Node,
@@ -19,6 +19,7 @@ import { Background, BackgroundVariant } from '@reactflow/background'
 import { Plus, Settings, Camera, Download } from 'lucide-react'
 import EnhancedTaskCard from './EnhancedTaskCard'
 import EnhancedUMLCard from './EnhancedUMLCard'
+import { FirebaseService } from '@/lib/firebase-service'
 import '@reactflow/core/dist/style.css'
 
 // Minimal CSS for touch performance
@@ -129,7 +130,14 @@ const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }
   </div>
 )
 
-export default function AiraWorkspace() {
+export default function AiraWorkspace({ projectId, initialWorkspaceData }: { 
+  projectId?: string
+  initialWorkspaceData?: {
+    tasks: any[]
+    umlDiagrams: any[]
+    connections: any[]
+  }
+} = {}) {
   const [newComponentId, setNewComponentId] = useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
 
@@ -326,6 +334,59 @@ export default function AiraWorkspace() {
     setNodes((nds: Node[]) => nds.filter(node => node.id !== nodeId))
     setEdges((eds: Edge[]) => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId))
   }, [setNodes, setEdges])
+
+  // Save workspace data to Firebase
+  const saveWorkspaceData = useCallback(async () => {
+    if (!projectId) return
+    
+    try {
+      // Convert React Flow nodes and edges to our data format
+      const tasks = nodes
+        .filter(node => node.type === 'taskNode')
+        .map(node => ({
+          id: node.id,
+          ...node.data,
+          position_x: node.position.x,
+          position_y: node.position.y
+        }))
+      
+      const umlDiagrams = nodes
+        .filter(node => node.type === 'umlNode')
+        .map(node => ({
+          id: node.id,
+          ...node.data,
+          position_x: node.position.x,
+          position_y: node.position.y
+        }))
+      
+      const connections = edges.map(edge => ({
+        id: edge.id,
+        source_id: edge.source,
+        target_id: edge.target,
+        source_handle: edge.sourceHandle,
+        target_handle: edge.targetHandle
+      }))
+
+      await FirebaseService.saveProjectWorkspaceData(projectId, {
+        tasks,
+        umlDiagrams,
+        connections
+      })
+    } catch (error) {
+      console.error('Error saving workspace data:', error)
+    }
+  }, [projectId, nodes, edges])
+
+  // Auto-save when nodes or edges change
+  useEffect(() => {
+    if (projectId && (nodes.length > 0 || edges.length > 0)) {
+      const timeoutId = setTimeout(() => {
+        saveWorkspaceData()
+      }, 1000) // Debounce saves by 1 second
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [nodes, edges, projectId, saveWorkspaceData])
 
   // Define custom node types
   const nodeTypes: NodeTypes = useMemo(() => ({

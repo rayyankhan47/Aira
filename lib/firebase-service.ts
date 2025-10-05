@@ -3,6 +3,7 @@ import {
   doc, 
   addDoc, 
   getDocs, 
+  getDoc,
   updateDoc, 
   deleteDoc, 
   query, 
@@ -16,9 +17,11 @@ export interface Project {
   name: string
   description?: string
   userId: string
-  tasks: any[]
-  umlDiagrams: any[]
-  connections: any[]
+  workspaceData: {
+    tasks: any[]
+    umlDiagrams: any[]
+    connections: any[]
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -30,9 +33,11 @@ export class FirebaseService {
       name,
       description: description || '',
       userId,
-      tasks: [],
-      umlDiagrams: [],
-      connections: [],
+      workspaceData: {
+        tasks: [],
+        umlDiagrams: [],
+        connections: []
+      },
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -69,10 +74,15 @@ export class FirebaseService {
   // Get a specific project
   static async getProject(projectId: string): Promise<Project | null> {
     const docRef = doc(db, 'projects', projectId)
-    const docSnap = await getDocs(collection(db, 'projects'))
+    const docSnap = await getDoc(docRef)
     
-    // This is a simplified version - in a real app you'd use getDoc(docRef)
-    // But for now, let's keep it simple
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      } as Project
+    }
+    
     return null
   }
 
@@ -91,15 +101,37 @@ export class FirebaseService {
     await deleteDoc(docRef)
   }
 
-  // Save project data (tasks, UML diagrams, connections)
-  static async saveProjectData(projectId: string, data: {
+  // Save workspace data for a project
+  static async saveProjectWorkspaceData(projectId: string, workspaceData: {
     tasks: any[]
     umlDiagrams: any[]
     connections: any[]
   }): Promise<void> {
-    await this.updateProject(projectId, {
-      ...data,
+    const docRef = doc(db, 'projects', projectId)
+    await updateDoc(docRef, {
+      workspaceData,
       updatedAt: new Date()
     })
+  }
+
+  // Load workspace data for a project
+  static async getProjectWorkspaceData(projectId: string): Promise<{
+    tasks: any[]
+    umlDiagrams: any[]
+    connections: any[]
+  } | null> {
+    const docRef = doc(db, 'projects', projectId)
+    const docSnap = await getDoc(docRef)
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      return data.workspaceData || {
+        tasks: [],
+        umlDiagrams: [],
+        connections: []
+      }
+    }
+    
+    return null
   }
 }
