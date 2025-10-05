@@ -22,8 +22,10 @@ interface EnhancedUMLCardProps {
   title: string
   attributes?: Attribute[]
   methods?: Method[]
+  isNew?: boolean
   onUpdate?: (id: string, updates: any) => void
   onDelete?: (id: string) => void
+  onInteraction?: () => void
 }
 
 export default function EnhancedUMLCard({
@@ -31,8 +33,10 @@ export default function EnhancedUMLCard({
   title,
   attributes = [],
   methods = [],
+  isNew = false,
   onUpdate,
-  onDelete
+  onDelete,
+  onInteraction,
 }: EnhancedUMLCardProps) {
   const [newAttributeName, setNewAttributeName] = useState('')
   const [newAttributeType, setNewAttributeType] = useState('')
@@ -93,12 +97,17 @@ export default function EnhancedUMLCard({
   }
 
   return (
-    <div className="bg-white text-gray-900 rounded-lg shadow-md border border-gray-200 w-80 cursor-move select-none relative">
+    <div className={`bg-white text-gray-900 rounded-lg shadow-md border border-gray-200 w-80 cursor-move select-none relative ${
+      isNew ? 'ring-4 ring-purple-400 ring-opacity-50 shadow-lg' : ''
+    }`}>
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200">
         <h3 className="font-medium text-sm">{title}</h3>
         <button
-          onClick={() => onDelete?.(id)}
+          onClick={() => {
+            onDelete?.(id)
+            onInteraction?.()
+          }}
           className="text-gray-400 hover:text-red-500 transition-colors"
         >
           <X className="h-4 w-4" />
@@ -118,7 +127,10 @@ export default function EnhancedUMLCard({
               <span className="text-xs text-purple-600">{attribute.type}</span>
             </div>
             <button
-              onClick={() => removeAttribute(attribute.id)}
+              onClick={() => {
+                removeAttribute(attribute.id)
+                onInteraction?.()
+              }}
               className="text-gray-400 hover:text-red-500"
             >
               <X className="h-3 w-3" />
@@ -143,7 +155,10 @@ export default function EnhancedUMLCard({
             className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <button
-            onClick={addAttribute}
+            onClick={() => {
+              addAttribute()
+              onInteraction?.()
+            }}
             className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex-shrink-0"
           >
             <Plus className="h-3 w-3" />
@@ -165,7 +180,10 @@ export default function EnhancedUMLCard({
               <span className="text-xs text-purple-600">{method.returnType}</span>
             </div>
             <button
-              onClick={() => removeMethod(method.id)}
+              onClick={() => {
+                removeMethod(method.id)
+                onInteraction?.()
+              }}
               className="text-gray-400 hover:text-red-500"
             >
               <X className="h-3 w-3" />
@@ -209,7 +227,10 @@ export default function EnhancedUMLCard({
               className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <button
-              onClick={addMethod}
+              onClick={() => {
+                addMethod()
+                onInteraction?.()
+              }}
               className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex-shrink-0"
             >
               <Plus className="h-3 w-3" />

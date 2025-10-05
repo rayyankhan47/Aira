@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Node,
@@ -29,22 +29,24 @@ const styles = `
 `
 
 // React Flow Node Components - Defined outside component to prevent recreation
-const TaskNode = ({ data }: { data: any }) => (
-  <div className="relative" style={{ overflow: 'visible' }}>
-    <EnhancedTaskCard
-      id={data.id}
-      title={data.title}
-      description={data.description}
-      priority={data.priority}
-      assignees={data.assignees}
-      techStack={data.techStack}
-      dueDate={data.dueDate}
-      isCompleted={data.isCompleted}
-      onUpdate={data.onUpdate}
-      onDelete={data.onDelete}
-      onGithubAction={data.onGithubAction}
-      onDiscordAction={data.onDiscordAction}
-    />
+const TaskNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => (
+    <div className="relative" style={{ overflow: 'visible' }}>
+      <EnhancedTaskCard
+        id={data.id}
+        title={data.title}
+        description={data.description}
+        priority={data.priority}
+        assignees={data.assignees}
+        techStack={data.techStack}
+        dueDate={data.dueDate}
+        isCompleted={data.isCompleted}
+        isNew={data.id === newComponentId}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        onGithubAction={data.onGithubAction}
+        onDiscordAction={data.onDiscordAction}
+        onInteraction={() => setNewComponentId(null)}
+      />
     
     {/* Connection Handles - Positioned to extend beyond component */}
     <Handle
@@ -80,15 +82,17 @@ const TaskNode = ({ data }: { data: any }) => (
   </div>
 )
 
-const UMLNode = ({ data }: { data: any }) => (
+const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => (
   <div className="relative" style={{ overflow: 'visible' }}>
     <EnhancedUMLCard
       id={data.id}
       title={data.name}
       attributes={data.attributes}
       methods={data.methods}
-      onUpdate={data.onUpdate}
-      onDelete={data.onDelete}
+      isNew={data.id === newComponentId}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      onInteraction={() => setNewComponentId(null)}
     />
     
     {/* Connection Handles - Positioned to extend beyond component */}
@@ -126,11 +130,8 @@ const UMLNode = ({ data }: { data: any }) => (
 )
 
 export default function AiraWorkspace() {
-  // Define custom node types
-  const nodeTypes: NodeTypes = useMemo(() => ({
-    taskNode: TaskNode,
-    umlNode: UMLNode,
-  }), [])
+  const [newComponentId, setNewComponentId] = useState<string | null>(null)
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
 
   // Define custom edge types for better animations
   const edgeTypes = useMemo(() => ({}), [])
@@ -143,14 +144,14 @@ export default function AiraWorkspace() {
       type: 'taskNode',
       position: { x: 500, y: 300 },
       data: {
-        id: 'task-1',
-        title: 'Authentication and Database',
-        description: 'Setup OAuth login and a fast CRUD database.',
+      id: 'task-1',
+      title: 'Authentication and Database',
+      description: 'Setup OAuth login and a fast CRUD database.',
         priority: 'high',
         assignees: ['Rayyan'],
         techStack: ['Next.js', 'Supabase'],
         dueDate: '2025-01-25',
-        isCompleted: true,
+      isCompleted: true,
       },
     },
     {
@@ -158,14 +159,14 @@ export default function AiraWorkspace() {
       type: 'taskNode',
       position: { x: 1200, y: 300 },
       data: {
-        id: 'task-2',
-        title: 'Github and Discord integration',
-        description: 'Link tasks to Github and track them through Discord',
+      id: 'task-2',
+      title: 'Github and Discord integration',
+      description: 'Link tasks to Github and track them through Discord',
         priority: 'medium',
         assignees: ['Rayyan'],
         techStack: ['GitHub API', 'Discord.js'],
         dueDate: '2025-01-25',
-        isCompleted: true,
+      isCompleted: true,
       },
     },
     {
@@ -219,13 +220,13 @@ export default function AiraWorkspace() {
       data: {
       name: 'User',
       attributes: [
-          { id: 'attr-1', name: 'id', type: 'string', isVisible: true },
-          { id: 'attr-2', name: 'email', type: 'string', isVisible: true },
-          { id: 'attr-3', name: 'name', type: 'string', isVisible: true }
+          { id: 'attr-1', name: 'id', type: 'string' },
+          { id: 'attr-2', name: 'email', type: 'string' },
+          { id: 'attr-3', name: 'name', type: 'string' }
         ],
         methods: [
-          { id: 'method-1', name: 'login', parameters: 'email, password', returnType: 'Session', isVisible: true },
-          { id: 'method-2', name: 'register', parameters: 'email, password, name', returnType: 'User', isVisible: true }
+          { id: 'method-1', name: 'login', parameters: 'email, password', returnType: 'Session', visibility: 'public' },
+          { id: 'method-2', name: 'register', parameters: 'email, password, name', returnType: 'User', visibility: 'public' }
         ],
       },
     },
@@ -236,13 +237,13 @@ export default function AiraWorkspace() {
       data: {
         name: 'Project',
         attributes: [
-          { id: 'attr-4', name: 'id', type: 'string', isVisible: true },
-          { id: 'attr-5', name: 'title', type: 'string', isVisible: true },
-          { id: 'attr-6', name: 'description', type: 'string', isVisible: true }
+          { id: 'attr-4', name: 'id', type: 'string' },
+          { id: 'attr-5', name: 'title', type: 'string' },
+          { id: 'attr-6', name: 'description', type: 'string' }
         ],
         methods: [
-          { id: 'method-3', name: 'createTask', parameters: 'title, description', returnType: 'Task', isVisible: true },
-          { id: 'method-4', name: 'addMember', parameters: 'user', returnType: 'void', isVisible: true }
+          { id: 'method-3', name: 'createTask', parameters: 'title, description', returnType: 'Task', visibility: 'public' },
+          { id: 'method-4', name: 'addMember', parameters: 'user', returnType: 'void', visibility: 'public' }
         ],
       },
     },
@@ -253,14 +254,14 @@ export default function AiraWorkspace() {
       data: {
         name: 'Task',
         attributes: [
-          { id: 'attr-7', name: 'id', type: 'string', isVisible: true },
-          { id: 'attr-8', name: 'title', type: 'string', isVisible: true },
-          { id: 'attr-9', name: 'status', type: 'TaskStatus', isVisible: true },
-          { id: 'attr-10', name: 'priority', type: 'Priority', isVisible: true }
+          { id: 'attr-7', name: 'id', type: 'string' },
+          { id: 'attr-8', name: 'title', type: 'string' },
+          { id: 'attr-9', name: 'status', type: 'TaskStatus' },
+          { id: 'attr-10', name: 'priority', type: 'Priority' }
       ],
       methods: [
-          { id: 'method-5', name: 'updateStatus', parameters: 'status: TaskStatus', returnType: 'void', isVisible: true },
-          { id: 'method-6', name: 'assignTo', parameters: 'user: User', returnType: 'void', isVisible: true }
+          { id: 'method-5', name: 'updateStatus', parameters: 'status: TaskStatus', returnType: 'void', visibility: 'public' },
+          { id: 'method-6', name: 'assignTo', parameters: 'user: User', returnType: 'void', visibility: 'public' }
         ],
       },
     },
@@ -309,6 +310,29 @@ export default function AiraWorkspace() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
+  // Update node function
+  const updateNode = useCallback((nodeId: string, updates: any) => {
+    setNodes((nds: Node[]) => 
+      nds.map(node => 
+        node.id === nodeId 
+          ? { ...node, data: { ...node.data, ...updates } }
+          : node
+      )
+    )
+  }, [setNodes])
+
+  // Delete node function
+  const deleteNode = useCallback((nodeId: string) => {
+    setNodes((nds: Node[]) => nds.filter(node => node.id !== nodeId))
+    setEdges((eds: Edge[]) => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId))
+  }, [setNodes, setEdges])
+
+  // Define custom node types
+  const nodeTypes: NodeTypes = useMemo(() => ({
+    taskNode: (props: any) => <TaskNode {...props} newComponentId={newComponentId} setNewComponentId={setNewComponentId} onDelete={deleteNode} onUpdate={updateNode} />,
+    umlNode: (props: any) => <UMLNode {...props} newComponentId={newComponentId} setNewComponentId={setNewComponentId} onDelete={deleteNode} onUpdate={updateNode} />,
+  }), [newComponentId, deleteNode, updateNode])
+
   // Handle new connections - simplified for debugging
   const onConnect = useCallback((params: Connection) => {
     console.log('onConnect called with:', params)
@@ -326,35 +350,65 @@ export default function AiraWorkspace() {
 
   // Add new task node
   const addNewTask = useCallback(() => {
+    const newId = `task-${Date.now()}`
+    
+    // Get center position of current view
+    let position = { x: 500, y: 300 } // default position
+    if (reactFlowInstance) {
+      const { x, y, zoom } = reactFlowInstance.getViewport()
+      position = {
+        x: -x / zoom + window.innerWidth / 2 / zoom,
+        y: -y / zoom + window.innerHeight / 2 / zoom
+      }
+    }
+    
     const newNode: Node = {
-      id: `task-${Date.now()}`,
+      id: newId,
       type: 'taskNode',
-      position: { x: Math.random() * 1000 + 100, y: Math.random() * 800 + 100 },
+      position,
       data: {
-      title: 'New Task',
-      description: 'Task description...',
-      techStacks: [],
-      isCompleted: false,
-      statusColor: 'blue',
+        id: newId,
+        title: '',
+        description: '',
+        priority: 'medium',
+        assignees: [],
+        techStack: [],
+        dueDate: '',
+        isCompleted: false,
       },
     }
     setNodes((nds: Node[]) => [...nds, newNode])
-  }, [setNodes])
+    setNewComponentId(newId)
+  }, [setNodes, reactFlowInstance])
 
   // Add new UML node
   const addNewUML = useCallback(() => {
+    const newId = `uml-${Date.now()}`
+    
+    // Get center position of current view
+    let position = { x: 500, y: 300 } // default position
+    if (reactFlowInstance) {
+      const { x, y, zoom } = reactFlowInstance.getViewport()
+      position = {
+        x: -x / zoom + window.innerWidth / 2 / zoom,
+        y: -y / zoom + window.innerHeight / 2 / zoom
+      }
+    }
+    
     const newNode: Node = {
-      id: `uml-${Date.now()}`,
+      id: newId,
       type: 'umlNode',
-      position: { x: Math.random() * 1000 + 100, y: Math.random() * 800 + 100 },
+      position,
       data: {
-      name: 'New Entity',
+        id: newId,
+        name: '',
       attributes: [],
       methods: [],
       },
     }
     setNodes((nds: Node[]) => [...nds, newNode])
-  }, [setNodes])
+    setNewComponentId(newId)
+  }, [setNodes, reactFlowInstance])
 
   return (
     <>
@@ -394,23 +448,26 @@ export default function AiraWorkspace() {
         </div>
 
       {/* React Flow */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        fitView
-        attributionPosition="bottom-left"
-        deleteKeyCode={null}
-        multiSelectionKeyCode={null}
-        selectionKeyCode={null}
-      >
-        <Controls />
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
-      </ReactFlow>
+      <div style={{ width: '100%', height: '100%' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          attributionPosition="bottom-left"
+          deleteKeyCode={null}
+          multiSelectionKeyCode={null}
+          selectionKeyCode={null}
+          onInit={setReactFlowInstance}
+        >
+          <Controls />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+        </ReactFlow>
+        </div>
       </div>
     </>
   )
