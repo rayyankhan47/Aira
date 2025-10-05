@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, User, Calendar, Github, MessageSquare, Check, Plus, Edit2 } from 'lucide-react'
+import { X, User, Calendar, Check, Plus, Edit2 } from 'lucide-react'
 import DeleteConfirmationModal from './DeleteConfirmationModal'
 
 interface EnhancedTaskCardProps {
@@ -16,8 +16,6 @@ interface EnhancedTaskCardProps {
   isNew?: boolean
   onUpdate?: (id: string, updates: any) => void
   onDelete?: (id: string) => void
-  onGithubAction?: (id: string) => void
-  onDiscordAction?: (id: string) => void
   onInteraction?: () => void
 }
 
@@ -33,8 +31,6 @@ export default function EnhancedTaskCard({
   isNew = false,
   onUpdate,
   onDelete,
-  onGithubAction,
-  onDiscordAction,
   onInteraction
 }: EnhancedTaskCardProps) {
   const [newAssignee, setNewAssignee] = useState('')
@@ -268,26 +264,6 @@ export default function EnhancedTaskCard({
             onClick={handleInteraction}
             className="text-xs border-none bg-transparent text-gray-600 focus:outline-none"
           />
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="p-3 border-b border-gray-200">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => onGithubAction?.(id)}
-            className="flex items-center space-x-1 px-3 py-1 bg-gray-800 text-white text-xs rounded hover:bg-gray-900"
-          >
-            <Github className="h-3 w-3" />
-            <span>GitHub</span>
-          </button>
-          <button
-            onClick={() => onDiscordAction?.(id)}
-            className="flex items-center space-x-1 px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700"
-          >
-            <MessageSquare className="h-3 w-3" />
-            <span>Discord</span>
-          </button>
         </div>
       </div>
 

@@ -16,6 +16,7 @@ import {
 } from '@reactflow/core'
 import { Controls } from '@reactflow/controls'
 import { Background, BackgroundVariant } from '@reactflow/background'
+import { MiniMap } from '@reactflow/minimap'
 import { Plus, Settings, Camera, Download } from 'lucide-react'
 import EnhancedTaskCard from './EnhancedTaskCard'
 import EnhancedUMLCard from './EnhancedUMLCard'
@@ -56,8 +57,6 @@ const TaskNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate 
         isNew={data.id === newComponentId}
         onUpdate={onUpdate}
         onDelete={onDelete}
-        onGithubAction={data.onGithubAction}
-        onDiscordAction={data.onDiscordAction}
         onInteraction={() => setNewComponentId(null)}
       />
     
@@ -744,6 +743,19 @@ export default function AiraWorkspace({
         >
           <Controls />
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+          <MiniMap 
+            nodeColor={(node) => {
+              const colorMap: { [key: string]: string } = {
+                'taskNode': '#3b82f6',
+                'umlNode': '#8b5cf6',
+              }
+              return colorMap[node.type || ''] || '#6b7280'
+            }}
+            nodeStrokeWidth={3}
+            nodeBorderRadius={2}
+            zoomable
+            pannable
+          />
         </ReactFlow>
         </div>
       </div>
