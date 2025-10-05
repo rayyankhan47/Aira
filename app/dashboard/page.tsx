@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Plus, Users, Link as LinkIcon } from 'lucide-react'
+import { Plus, Users, Link as LinkIcon, ArrowLeft, Settings } from 'lucide-react'
 import Link from 'next/link'
 import FirebaseTest from '@/components/FirebaseTest'
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectDescription, setNewProjectDescription] = useState('')
+  const [showFirebaseTest, setShowFirebaseTest] = useState(false)
 
   const loadUserProjects = async () => {
     if (!user) return
@@ -93,15 +94,24 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="px-6 py-4">
-        <div className="flex items-center">
-          <div className="w-6 h-6 mr-3">
-            <div className="w-full h-full bg-gray-800 rounded-sm flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm"></div>
-            </div>
-          </div>
-          <span className="text-xl font-medium text-gray-900">
-            Aira
-          </span>
+        <div className="flex items-center justify-between">
+          <Link href="/">
+            <Button variant="outline" size="sm" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          
+          {/* Debug Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFirebaseTest(!showFirebaseTest)}
+            className="font-notion bg-transparent border-gray-300 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            title="Toggle Firebase Debug Panel"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
@@ -112,10 +122,23 @@ export default function Dashboard() {
           Your Aira Boards
         </h1>
 
-        {/* Firebase Test Component */}
-        <div className="mb-8">
-          <FirebaseTest />
-        </div>
+        {/* Firebase Test Component - Hidden by default */}
+        {showFirebaseTest && (
+          <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Firebase Debug Panel</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFirebaseTest(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+            <FirebaseTest />
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8">

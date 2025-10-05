@@ -53,7 +53,7 @@ export default function AuthButton() {
   return (
     <Button 
       onClick={() => router.push('/login')}
-      className="font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0"
+      className="font-notion bg-black hover:bg-gray-800 border-0 text-white"
     >
       Login
     </Button>

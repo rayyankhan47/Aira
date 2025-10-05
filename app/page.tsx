@@ -18,10 +18,7 @@ export default function Home() {
         <header className="relative z-20 p-6">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600/20 rounded-xl backdrop-blur-sm">
-                <Brain className="h-8 w-8 text-blue-400" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-notion">
+              <span className="text-2xl font-bold text-black font-notion">
                 Aira
               </span>
             </div>
@@ -58,7 +55,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link href="/dashboard">
-                <Button size="lg" className="text-lg px-10 py-5 font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 shadow-2xl shadow-blue-500/25">
+                <Button size="lg" className="text-lg px-10 py-5 font-notion bg-black hover:bg-gray-800 border-0 shadow-2xl shadow-gray-500/25 text-white">
                   Get Started Free →
                 </Button>
               </Link>
@@ -214,7 +211,7 @@ export default function Home() {
             Join thousands of teams already using Aira to build intelligent, automated workflows
           </p>
           <Link href="/dashboard">
-            <Button size="lg" className="text-lg px-12 py-5 font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0 shadow-2xl shadow-blue-500/25">
+            <Button size="lg" className="text-lg px-12 py-5 font-notion bg-black hover:bg-gray-800 border-0 shadow-2xl shadow-gray-500/25 text-white">
               Start Building Now
             </Button>
           </Link>
@@ -225,10 +222,7 @@ export default function Home() {
       <footer className="py-12 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-3 mb-4 md:mb-0">
-            <div className="p-1 bg-blue-600/20 rounded-lg">
-              <Brain className="h-6 w-6 text-blue-400" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-notion">
+            <span className="text-xl font-bold text-black font-notion">
               Aira
             </span>
           </div>
