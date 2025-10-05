@@ -76,7 +76,7 @@ export default function Home() {
       <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-relaxed pb-1">
               Powerful Features for Seamless Planning
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-2xl mx-auto">
@@ -183,7 +183,7 @@ export default function Home() {
       <section id="integrations" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-relaxed pb-1">
               Powerful Integrations
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-2xl mx-auto">
@@ -218,7 +218,7 @@ export default function Home() {
       <section id="ai-power" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-relaxed pb-1">
               Powered by Advanced AI
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-3xl mx-auto">
@@ -267,7 +267,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent leading-tight">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent leading-relaxed pb-1">
             Ready to Transform Your Workflow?
           </h2>
           <p className="text-xl text-gray-600 mb-10 font-notion">

@@ -363,8 +363,8 @@ export default function Dashboard() {
 
         {/* Your Agentic Airas Section */}
         <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Your Agentic Airas
             </h2>
             <Button 
