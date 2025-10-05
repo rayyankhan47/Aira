@@ -5,10 +5,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { task, summary } = body
     
+    console.log('Notion API called with task:', task?.title)
+    
     const notionApiKey = process.env.NOTION_API_KEY
     const notionDatabaseId = process.env.NOTION_DATABASE_ID
     
+    console.log('Notion API Key exists:', !!notionApiKey)
+    console.log('Notion Database ID exists:', !!notionDatabaseId)
+    
     if (!notionApiKey || !notionDatabaseId) {
+      console.error('Missing Notion credentials:', { hasApiKey: !!notionApiKey, hasDatabaseId: !!notionDatabaseId })
       return NextResponse.json(
         { success: false, error: 'Notion API credentials not configured' },
         { status: 500 }
@@ -52,57 +58,20 @@ export async function POST(request: NextRequest) {
             }
           ]
         },
-        'Description': {
-          rich_text: [
-            {
-              text: {
-                content: task.description || 'No description'
-              }
-            }
-          ]
-        },
-        'Status': {
-          select: {
-            name: task.completed ? 'Completed' : 'In Progress'
-          }
-        }
       }
     }
     
-    // Add assignees if present
-    if (task.assignees && task.assignees.length > 0) {
-      pageData.properties['Assignee'] = {
-        multi_select: task.assignees.map((assignee: string) => ({
-          name: assignee
-        }))
-      }
-    }
-    
-    // Add tech stack if present
-    if (task.techStack && task.techStack.length > 0) {
-      pageData.properties['Tech Stack'] = {
-        multi_select: task.techStack.map((tech: string) => ({
-          name: tech
-        }))
-      }
-    }
-    
-    // Add due date if present
-    if (task.dueDate) {
-      pageData.properties['Due Date'] = {
-        date: {
-          start: task.dueDate
-        }
-      }
-    }
-    
-    // Add AI summary if available
+    // Add AI summary as part of the title to avoid property issues
     if (summary) {
-      pageData.properties['AI Summary'] = {
-        rich_text: [
+      const truncatedSummary = summary.length > 1500 
+        ? summary.substring(0, 1500) + '...' 
+        : summary
+      
+      pageData.properties['Name'] = {
+        title: [
           {
             text: {
-              content: summary
+              content: `${task.title || 'Untitled Task'} - AI Summary: ${truncatedSummary}`
             }
           }
         ]

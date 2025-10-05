@@ -55,12 +55,13 @@ export class WorkflowExecutionService {
     const lastExecution = this.executionTracker.get(projectId) || 0
     const timeSinceLastExecution = now - lastExecution
     
-    if (timeSinceLastExecution < 60000) { // 60 seconds
+    if (timeSinceLastExecution < 5000) { // 5 seconds - much shorter for testing
       console.log('🚫 Skipping workflow execution - too recent (spam prevention)')
       return
     }
     
     this.executionTracker.set(projectId, now)
+    console.log('✅ Throttling passed, proceeding with workflow execution')
     
     try {
       // Get the project to find coupled workflows
@@ -157,6 +158,8 @@ export class WorkflowExecutionService {
         'completed',
         result
       )
+      
+      console.log('✅ Workflow execution completed successfully')
     } catch (error) {
       console.error(`Error executing workflow ${workflowId}:`, error)
       await FirebaseService.updateAgenticActionStatus(
@@ -263,21 +266,50 @@ export class WorkflowExecutionService {
     const nodeDataType = node.data?.type
     console.log('🔧 Executing node:', nodeDataType, 'for node:', node.id)
     
+    let result: any
+    
     switch (nodeDataType) {
+      case 'task-created':
+        // Input nodes don't need execution, just return success
+        result = { success: true, message: 'Task created event detected', eventType: 'task-created' }
+        break
+      case 'task-completed':
+        // Input nodes don't need execution, just return success
+        result = { success: true, message: 'Task completed event detected', eventType: 'task-completed' }
+        break
+      case 'task-updated':
+        // Input nodes don't need execution, just return success
+        result = { success: true, message: 'Task updated event detected', eventType: 'task-updated' }
+        break
       case 'ai-analyze':
-        return await this.executeAIAnalyze(node, context, previousResults)
+        result = await this.executeAIAnalyze(node, context, previousResults)
+        break
       case 'ai-generate':
-        return await this.executeAIGenerate(node, context, previousResults)
+        result = await this.executeAIGenerate(node, context, previousResults)
+        break
       case 'ai-categorize':
-        return await this.executeAICategorize(node, context, previousResults)
+        result = await this.executeAICategorize(node, context, previousResults)
+        break
       case 'update-notion':
-        return await this.executeUpdateNotion(node, context, previousResults)
+        result = await this.executeUpdateNotion(node, context, previousResults)
+        break
       case 'post-discord':
-        return await this.executePostDiscord(node, context, previousResults)
+        result = await this.executePostDiscord(node, context, previousResults)
+        break
       default:
         console.warn(`Unknown node type: ${nodeDataType}`)
-        return { success: false, message: `Unknown node type: ${nodeDataType}` }
+        result = { success: false, message: `Unknown node type: ${nodeDataType}` }
+        break
     }
+    
+    // Check if the node execution failed
+    if (!result.success) {
+      console.error(`❌ Node ${nodeDataType} failed:`, result.error || result.message)
+      throw new Error(result.error || result.message || `Node ${nodeDataType} failed`)
+    }
+    
+    console.log(`✅ Node ${nodeDataType} succeeded:`, result.message)
+    return result
   }
 
   /**
@@ -289,10 +321,9 @@ export class WorkflowExecutionService {
     const hasTasks = projectData.tasks && projectData.tasks.length > 0
     console.log('🔍 Detecting task creation - Tasks found:', projectData.tasks?.length || 0)
     
-    // TEMPORARY: Only trigger on task creation if we have a reasonable number of tasks
-    // This prevents triggering on deletion or when just navigating
-    // TODO: Implement proper task creation tracking
-    return hasTasks && (projectData.tasks?.length || 0) > 0
+    // Always trigger if tasks exist - this is for testing purposes
+    // TODO: Implement proper task creation tracking with timestamps
+    return hasTasks
   }
 
   private static detectTaskCompleted(projectData: any): boolean {

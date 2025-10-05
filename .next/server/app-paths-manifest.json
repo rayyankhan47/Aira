@@ -1,6 +1,8 @@
 {
   "/not-found": "app/not-found.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/agentic-workspace/page": "app/agentic-workspace/page.js",
-  "/workspace/page": "app/workspace/page.js"
+  "/workspace/page": "app/workspace/page.js",
+  "/page": "app/page.js",
+  "/api/notion/update-task/route": "app/api/notion/update-task/route.js",
+  "/api/gemini/generate-content/route": "app/api/gemini/generate-content/route.js"
 }

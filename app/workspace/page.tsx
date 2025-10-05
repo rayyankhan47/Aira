@@ -52,12 +52,15 @@ export default function Workspace() {
   const loadProject = async () => {
     if (!projectId) return
     
+    console.log('Loading project:', projectId)
     setLoading(true)
     try {
       const projectData = await FirebaseService.getProject(projectId)
+      console.log('Loaded project data:', projectData)
       if (projectData) {
         setProject(projectData)
       } else {
+        console.log('No project data found, redirecting to dashboard')
         router.push('/dashboard')
       }
     } catch (error) {

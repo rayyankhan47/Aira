@@ -56,25 +56,26 @@ export class GeminiService {
    * Generate content based on task data
    */
   static async generateContent(taskData: any, contentType: string): Promise<GeminiResponse> {
-    if (!this.isConfigured()) {
-      return {
-        success: false,
-        error: 'Gemini API key not configured'
-      }
-    }
-
     try {
-      const prompt = `Generate ${contentType} for this task:
+      // Use server-side API route instead of direct API calls to avoid CORS
+      const response = await fetch('/api/gemini/generate-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ task: taskData, contentType })
+      })
       
-Task Title: ${taskData.title || 'Untitled Task'}
-Description: ${taskData.description || 'No description'}
-Assignee: ${taskData.assignees?.join(', ') || 'Unassigned'}
-Tech Stack: ${taskData.techStack?.join(', ') || 'Not specified'}
-
-Please generate appropriate ${contentType} content that would be useful for this task.`
-
-      const response = await this.callGeminiAPI(prompt)
-      return response
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.error || 'Failed to generate content'
+        }
+      }
+      
+      return result
     } catch (error) {
       console.error('Error generating content:', error)
       return {

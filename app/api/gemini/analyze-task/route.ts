@@ -5,9 +5,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { task } = body
     
+    console.log('Gemini API called with task:', task?.title)
+    
     const geminiApiKey = process.env.GEMINI_API_KEY
     
+    console.log('Gemini API Key exists:', !!geminiApiKey)
+    console.log('Gemini API Key starts with:', geminiApiKey?.substring(0, 10) + '...')
+    
     if (!geminiApiKey) {
+      console.error('Missing Gemini API key')
       return NextResponse.json(
         { success: false, error: 'Gemini API key not configured' },
         { status: 500 }
@@ -31,7 +37,7 @@ Please provide:
 
 Keep the response concise and actionable.`
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

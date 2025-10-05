@@ -173,6 +173,7 @@ export default function AiraWorkspace({
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
   const lastSavedRef = useRef<string>('')
   const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isInitialMountRef = useRef(true)
 
   // Notify parent component when save status changes
   useEffect(() => {
@@ -191,18 +192,12 @@ export default function AiraWorkspace({
       console.log('First task structure:', JSON.stringify(tasks[0], null, 2))
     }
     
-    // For new projects, don't show default data - start with empty workspace
-    if (tasks.length === 0) {
-      console.log('No tasks found, returning empty array')
-      return []
-    }
-    
-    // Process loaded tasks from Firebase
+    // Process loaded UML diagrams from Firebase
     const umlDiagrams = initialWorkspaceData?.umlDiagrams || []
     
-    // For new projects, don't show default data - start with empty workspace
-    if (umlDiagrams.length === 0) {
-      console.log('No UML diagrams found, returning empty array')
+    // If no tasks AND no UMLs, return empty array
+    if (tasks.length === 0 && umlDiagrams.length === 0) {
+      console.log('No tasks or UML diagrams found, returning empty array')
       return []
     }
 
@@ -495,8 +490,19 @@ export default function AiraWorkspace({
 
   // Save immediately when component unmounts (user navigates away)
   useEffect(() => {
+    // Mark that we've mounted (not initial anymore)
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false
+    }
+    
     return () => {
-      if (projectId && (nodes.length > 0 || edges.length > 0)) {
+      // Only trigger workflow execution when actually leaving, not on initial mount
+      if (isInitialMountRef.current) {
+        return // Skip on initial mount
+      }
+      
+      const hasUserChanges = nodes.length > 0 || edges.length > 0
+      if (projectId && hasUserChanges) {
         setSaveStatus('saving')
         // Force immediate save without debounce
         setTimeout(async () => {
@@ -554,15 +560,15 @@ export default function AiraWorkspace({
             await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
             setSaveStatus('saved')
             
-            // Trigger workflow execution after successful save
-            try {
-              console.log('🚀 Triggering workflow execution with workspace data:', workspaceData)
-              await WorkflowExecutionService.executeCoupledWorkflows(projectId, workspaceData)
-              console.log('✅ Workflow execution completed')
-            } catch (workflowError) {
-              console.error('❌ Error executing coupled workflows:', workflowError)
-              // Don't fail the save if workflow execution fails
-            }
+    // Trigger workflow execution after successful save
+    try {
+      console.log('🚀 Triggering workflow execution with workspace data:', workspaceData)
+      await WorkflowExecutionService.executeCoupledWorkflows(projectId, workspaceData)
+      console.log('✅ Workflow execution completed')
+    } catch (workflowError) {
+      console.error('❌ Error executing coupled workflows:', workflowError)
+      // Don't fail the save if workflow execution fails
+    }
           } catch (error) {
             console.error('Error in immediate save on unmount:', error)
             setSaveStatus('error')

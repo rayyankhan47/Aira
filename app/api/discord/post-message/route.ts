@@ -5,9 +5,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { task, summary } = body
     
+    console.log('Discord API called with task:', task?.title)
+    
     const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL
     
+    console.log('Discord Webhook URL exists:', !!discordWebhookUrl)
+    console.log('Discord Webhook URL starts with:', discordWebhookUrl?.substring(0, 20) + '...')
+    
     if (!discordWebhookUrl) {
+      console.error('Missing Discord webhook URL')
       return NextResponse.json(
         { success: false, error: 'Discord webhook URL not configured' },
         { status: 500 }
