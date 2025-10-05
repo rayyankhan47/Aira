@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     
     // Check if page already exists
     // For pages, we'll always create new ones (no duplicate checking for now)
-    const existingPages = []
+    const existingPages: any[] = []
     
     // Create page in the "Aira Work Tasks" page location
     const airaWorkTasksPageId = '283289b1-f199-80ca-adb0-ee3d39b35183'
