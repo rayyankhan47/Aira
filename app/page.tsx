@@ -3,8 +3,9 @@
 import { Button } from '@/components/ui/Button'
 import FloatingBubbles from '@/components/FloatingBubbles'
 import AuthButton from '@/components/auth/AuthButton'
-import { Brain, GitBranch, MessageSquare, Zap, Users, BarChart3, Github, Slack, Code2, CheckSquare } from 'lucide-react'
+import { Brain, GitBranch, MessageSquare, Zap, Users, BarChart3, Github, FileText, Code2, CheckSquare, Play } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   return (
@@ -60,15 +61,12 @@ export default function Home() {
               The all-in-one agentic AI workspace for software engineers and project managers. 
               Drag, drop, and watch AI agents automate your entire workflow.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex justify-center">
               <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-10 py-5 font-notion bg-black hover:bg-gray-800 border-0 shadow-2xl shadow-gray-500/25 text-white">
                   Get Started Free →
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="text-lg px-10 py-5 font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-400">
-                Watch Demo
-              </Button>
             </div>
           </div>
         </div>
@@ -78,12 +76,70 @@ export default function Home() {
       <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
               Powerful Features for Seamless Planning
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-2xl mx-auto">
               Everything you need to build intelligent, automated workflows
             </p>
+          </div>
+
+          {/* Screenshot Showcase */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 mb-20">
+            {/* Screenshot with Window Effect */}
+            <div className="flex-1 max-w-4xl">
+              <div className="relative">
+                {/* Window Shadow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900/20 to-gray-600/10 rounded-3xl transform rotate-1 scale-105"></div>
+                
+                {/* Window Border */}
+                <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden">
+                  {/* Window Header */}
+                  <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                    <div className="text-sm text-gray-500 font-notion">Aira Workspace</div>
+                    <div className="w-16"></div>
+                  </div>
+                  
+                  {/* Screenshot */}
+                  <div className="relative">
+                    <Image
+                      src="/images/aira_website_screenshot-min.png"
+                      alt="Aira Workspace Screenshot"
+                      width={800}
+                      height={600}
+                      className="w-full h-auto"
+                      priority
+                    />
+                    
+                    {/* Overlay Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/10 via-transparent to-transparent pointer-events-none"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Demo Button and Description */}
+            <div className="flex-1 max-w-md text-center lg:text-left">
+              <h3 className="text-3xl font-bold text-gray-900 mb-6 font-notion">
+                See It In Action
+              </h3>
+              <p className="text-lg text-gray-600 mb-8 font-notion leading-relaxed">
+                Experience the power of drag-and-drop task management with intelligent AI workflows. 
+                Watch as your projects come to life with seamless automation.
+              </p>
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-4 font-notion bg-black hover:bg-gray-800 border-0 shadow-xl text-white"
+              >
+                <Play className="h-5 w-5 mr-2" />
+                Watch Demo
+              </Button>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -93,8 +149,8 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-semibold mb-4 font-notion text-gray-900">Agentic AI Workflows</h3>
               <p className="text-gray-600 font-notion leading-relaxed">
-                Create intelligent workflows by connecting AI agents. Each agent understands your project context 
-                and executes complex tasks automatically with natural language reasoning.
+                Build intelligent automation workflows that trigger on task events. AI agents automatically 
+                analyze, categorize, and execute actions like updating Notion pages or posting to Discord.
               </p>
             </div>
             
@@ -102,10 +158,10 @@ export default function Home() {
               <div className="p-3 bg-blue-600/20 rounded-2xl w-fit mb-6">
                 <Users className="h-8 w-8 text-blue-400" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4 font-notion text-gray-900">Multi-Project Management</h3>
+              <h3 className="text-2xl font-semibold mb-4 font-notion text-gray-900">Smart Project Boards</h3>
               <p className="text-gray-600 font-notion leading-relaxed">
-                Organize multiple projects with dedicated task boards. Apply the same AI workflows across 
-                different projects for maximum efficiency and consistency.
+                Create and manage multiple project boards with drag-and-drop task management. Couple your 
+                projects with AI workflows for automatic task processing and intelligent automation.
               </p>
             </div>
             
@@ -113,10 +169,10 @@ export default function Home() {
               <div className="p-3 bg-green-600/20 rounded-2xl w-fit mb-6">
                 <BarChart3 className="h-8 w-8 text-green-400" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4 font-notion text-gray-900">Visual Task Canvas</h3>
+              <h3 className="text-2xl font-semibold mb-4 font-notion text-gray-900">Visual Workspace Canvas</h3>
               <p className="text-gray-600 font-notion leading-relaxed">
-                Drag and drop tasks, create UML diagrams, and visualize project dependencies in an 
-                intuitive canvas-based interface with real-time collaboration.
+                Design tasks and UML diagrams on an intuitive canvas with React Flow. Create connections, 
+                track dependencies, and watch your project structure come to life visually.
               </p>
             </div>
           </div>
@@ -127,7 +183,7 @@ export default function Home() {
       <section id="integrations" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
               Powerful Integrations
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-2xl mx-auto">
@@ -137,16 +193,16 @@ export default function Home() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/20 hover:border-gray-300/30 transition-all duration-300 group">
-              <Github className="h-12 w-12 text-gray-600 group-hover:text-gray-900 mx-auto mb-4 transition-colors" />
-              <span className="font-semibold text-gray-600 group-hover:text-gray-900 font-notion block text-center transition-colors">GitHub</span>
+              <FileText className="h-12 w-12 text-gray-600 group-hover:text-gray-900 mx-auto mb-4 transition-colors" />
+              <span className="font-semibold text-gray-600 group-hover:text-gray-900 font-notion block text-center transition-colors">Notion</span>
             </div>
             <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/20 hover:border-indigo-500/30 transition-all duration-300 group">
               <MessageSquare className="h-12 w-12 text-indigo-500 group-hover:text-indigo-600 mx-auto mb-4 transition-colors" />
               <span className="font-semibold text-gray-600 group-hover:text-gray-900 font-notion block text-center transition-colors">Discord</span>
             </div>
-            <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/20 hover:border-green-500/30 transition-all duration-300 group">
-              <Slack className="h-12 w-12 text-green-500 group-hover:text-green-600 mx-auto mb-4 transition-colors" />
-              <span className="font-semibold text-gray-600 group-hover:text-gray-900 font-notion block text-center transition-colors">Slack</span>
+            <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/20 hover:border-gray-300/30 transition-all duration-300 group">
+              <Github className="h-12 w-12 text-gray-600 group-hover:text-gray-900 mx-auto mb-4 transition-colors" />
+              <span className="font-semibold text-gray-600 group-hover:text-gray-900 font-notion block text-center transition-colors">GitHub</span>
               <span className="text-xs text-gray-500 font-notion block text-center mt-1">(coming soon!)</span>
             </div>
             <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/20 hover:border-orange-500/30 transition-all duration-300 group">
@@ -162,7 +218,7 @@ export default function Home() {
       <section id="ai-power" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
               Powered by Advanced AI
             </h2>
             <p className="text-xl text-gray-600 font-notion max-w-3xl mx-auto">
@@ -211,7 +267,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-notion bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent leading-tight">
             Ready to Transform Your Workflow?
           </h2>
           <p className="text-xl text-gray-600 mb-10 font-notion">
