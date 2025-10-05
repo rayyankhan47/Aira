@@ -849,18 +849,12 @@ export default function AiraWorkspace({
       {/* Top Toolbar */}
       <div className="absolute top-4 right-4 flex space-x-2 z-10">
         <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg shadow-sm transition-colors">
-          <Plus className="h-4 w-4" />
-          </button>
-        <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg shadow-sm transition-colors">
-          <Settings className="h-4 w-4" />
-          </button>
-        <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg shadow-sm transition-colors">
           <Camera className="h-4 w-4" />
           </button>
         <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg shadow-sm transition-colors">
           <Download className="h-4 w-4" />
           </button>
-        </div>
+      </div>
 
       {/* React Flow */}
       <div style={{ width: '100%', height: '100%' }}>
