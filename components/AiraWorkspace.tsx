@@ -17,8 +17,8 @@ import {
 import { Controls } from '@reactflow/controls'
 import { Background, BackgroundVariant } from '@reactflow/background'
 import { Plus, Settings, Camera, Download } from 'lucide-react'
-import TaskCard from './TaskCard'
-import UMLCard from './UMLCard'
+import EnhancedTaskCard from './EnhancedTaskCard'
+import EnhancedUMLCard from './EnhancedUMLCard'
 import '@reactflow/core/dist/style.css'
 
 // Minimal CSS for touch performance
@@ -30,92 +30,98 @@ const styles = `
 
 // React Flow Node Components - Defined outside component to prevent recreation
 const TaskNode = ({ data }: { data: any }) => (
-  <div className="bg-white text-gray-900 rounded-lg shadow-md border border-gray-200 w-48 cursor-move select-none relative">
-    {/* Connection Handles - Simplified */}
+  <div className="relative" style={{ overflow: 'visible' }}>
+    <EnhancedTaskCard
+      id={data.id}
+      title={data.title}
+      description={data.description}
+      priority={data.priority}
+      assignees={data.assignees}
+      techStack={data.techStack}
+      dueDate={data.dueDate}
+      isCompleted={data.isCompleted}
+      onUpdate={data.onUpdate}
+      onDelete={data.onDelete}
+      onGithubAction={data.onGithubAction}
+      onDiscordAction={data.onDiscordAction}
+    />
+    
+    {/* Connection Handles - Positioned to extend beyond component */}
     <Handle
       type="source"
       position={Position.Right}
-      style={{ background: '#3B82F6', width: 10, height: 10 }}
+      style={{ 
+        background: '#3B82F6', 
+        width: 14, 
+        height: 14, 
+        top: '50%',
+        right: -7,
+        transform: 'translateY(-50%)',
+        border: '2px solid white',
+        borderRadius: '50%',
+        zIndex: 10
+      }}
     />
     <Handle
       type="target"
       position={Position.Left}
-      style={{ background: '#10B981', width: 10, height: 10 }}
+      style={{ 
+        background: '#10B981', 
+        width: 14, 
+        height: 14, 
+        top: '50%',
+        left: -7,
+        transform: 'translateY(-50%)',
+        border: '2px solid white',
+        borderRadius: '50%',
+        zIndex: 10
+      }}
     />
-    
-    {/* Header */}
-    <div className="flex items-center justify-between p-3 border-b border-gray-200">
-      <div className="flex items-center space-x-2">
-        <div className={`w-3 h-3 rounded-full ${
-          data.statusColor === 'yellow' ? 'bg-yellow-400' :
-          data.statusColor === 'red' ? 'bg-red-400' :
-          data.statusColor === 'blue' ? 'bg-blue-400' :
-          data.statusColor === 'green' ? 'bg-green-400' :
-          'bg-gray-400'
-        }`} />
-        <h3 className="font-medium text-sm">{data.title}</h3>
-      </div>
-      <div className="text-xs text-gray-500">{data.assignee}</div>
-    </div>
-    
-    {/* Content */}
-    <div className="p-3">
-      <p className="text-xs text-gray-600 mb-2">{data.description}</p>
-      <div className="flex flex-wrap gap-1 mb-2">
-        {data.techStacks.map((tech: string, index: number) => (
-          <span key={index} className="px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded">
-            {tech}
-          </span>
-        ))}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">{data.dueDate}</span>
-        <div className={`w-4 h-4 border-2 rounded ${
-          data.isCompleted ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-        }`} />
-      </div>
-    </div>
   </div>
 )
 
 const UMLNode = ({ data }: { data: any }) => (
-  <div className="bg-white text-gray-900 rounded-lg shadow-md border border-gray-200 w-56 cursor-move select-none relative">
-    {/* Connection Handles - Simplified */}
+  <div className="relative" style={{ overflow: 'visible' }}>
+    <EnhancedUMLCard
+      id={data.id}
+      title={data.name}
+      attributes={data.attributes}
+      methods={data.methods}
+      onUpdate={data.onUpdate}
+      onDelete={data.onDelete}
+    />
+    
+    {/* Connection Handles - Positioned to extend beyond component */}
     <Handle
       type="source"
       position={Position.Right}
-      style={{ background: '#8B5CF6', width: 10, height: 10 }}
+      style={{ 
+        background: '#8B5CF6', 
+        width: 14, 
+        height: 14, 
+        top: '50%',
+        right: -7,
+        transform: 'translateY(-50%)',
+        border: '2px solid white',
+        borderRadius: '50%',
+        zIndex: 10
+      }}
     />
     <Handle
       type="target"
       position={Position.Left}
-      style={{ background: '#10B981', width: 10, height: 10 }}
+      style={{ 
+        background: '#10B981', 
+        width: 14, 
+        height: 14, 
+        top: '50%',
+        left: -7,
+        transform: 'translateY(-50%)',
+        border: '2px solid white',
+        borderRadius: '50%',
+        zIndex: 10
+      }}
     />
-    
-    {/* Header */}
-    <div className="flex items-center justify-between p-2 border-b border-gray-200">
-      <h3 className="font-medium text-sm">{data.name}</h3>
-    </div>
-    
-    {/* Attributes */}
-    <div className="p-2 border-b border-gray-100">
-      <div className="text-xs font-medium text-gray-700 mb-1">Attributes</div>
-      {data.attributes.map((attr: any) => (
-        <div key={attr.id} className="text-xs text-gray-600">
-          {attr.name}: {attr.type}
-        </div>
-      ))}
-    </div>
-    
-    {/* Methods */}
-    <div className="p-2">
-      <div className="text-xs font-medium text-gray-700 mb-1">Methods</div>
-      {data.methods.map((method: any) => (
-        <div key={method.id} className="text-xs text-gray-600">
-          {method.name}({method.parameters}): {method.returnType}
-        </div>
-      ))}
-    </div>
   </div>
 )
 
@@ -137,13 +143,14 @@ export default function AiraWorkspace() {
       type: 'taskNode',
       position: { x: 500, y: 300 },
       data: {
-      title: 'Authentication and Database',
-      description: 'Setup OAuth login and a fast CRUD database.',
-        assignee: 'Rayyan',
-        techStacks: ['Next.js', 'Supabase'],
-      dueDate: 'January 25th, 2025',
-      isCompleted: true,
-      statusColor: 'yellow',
+        id: 'task-1',
+        title: 'Authentication and Database',
+        description: 'Setup OAuth login and a fast CRUD database.',
+        priority: 'high',
+        assignees: ['Rayyan'],
+        techStack: ['Next.js', 'Supabase'],
+        dueDate: '2025-01-25',
+        isCompleted: true,
       },
     },
     {
@@ -151,13 +158,14 @@ export default function AiraWorkspace() {
       type: 'taskNode',
       position: { x: 1200, y: 300 },
       data: {
-      title: 'Github and Discord integration',
-      description: 'Link tasks to Github and track them through Discord',
-        assignee: 'Rayyan',
-        techStacks: ['GitHub API', 'Discord.js'],
-      dueDate: 'January 25th, 2025',
-      isCompleted: true,
-      statusColor: 'red',
+        id: 'task-2',
+        title: 'Github and Discord integration',
+        description: 'Link tasks to Github and track them through Discord',
+        priority: 'medium',
+        assignees: ['Rayyan'],
+        techStack: ['GitHub API', 'Discord.js'],
+        dueDate: '2025-01-25',
+        isCompleted: true,
       },
     },
     {
@@ -165,13 +173,14 @@ export default function AiraWorkspace() {
       type: 'taskNode',
       position: { x: 800, y: 800 },
       data: {
+        id: 'task-3',
         title: 'Front-end Development',
         description: 'Build the drag-and-drop interface with React',
-        assignee: 'Rayyan',
-        techStacks: ['React', 'TypeScript', 'Tailwind'],
-        dueDate: 'January 26th, 2025',
+        priority: 'low',
+        assignees: ['Rayyan'],
+        techStack: ['React', 'TypeScript', 'Tailwind'],
+        dueDate: '2025-01-26',
         isCompleted: false,
-        statusColor: 'blue',
       },
     },
     {
