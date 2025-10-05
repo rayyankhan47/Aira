@@ -39,6 +39,9 @@ export interface WorkflowEdge {
 }
 
 export class WorkflowExecutionService {
+  // Track executions to prevent spam
+  private static executionTracker = new Map<string, number>()
+  
   /**
    * Main execution function - called when user navigates back from workspace
    */
@@ -46,6 +49,18 @@ export class WorkflowExecutionService {
     console.log('🚀 WorkflowExecutionService.executeCoupledWorkflows called')
     console.log('📊 Project ID:', projectId)
     console.log('📊 Project Data:', projectData)
+    
+    // Prevent spam executions - only allow one execution per project per minute
+    const now = Date.now()
+    const lastExecution = this.executionTracker.get(projectId) || 0
+    const timeSinceLastExecution = now - lastExecution
+    
+    if (timeSinceLastExecution < 60000) { // 60 seconds
+      console.log('🚫 Skipping workflow execution - too recent (spam prevention)')
+      return
+    }
+    
+    this.executionTracker.set(projectId, now)
     
     try {
       // Get the project to find coupled workflows
@@ -269,10 +284,15 @@ export class WorkflowExecutionService {
    * Event detection methods
    */
   private static detectTaskCreated(projectData: any): boolean {
-    // Check if there are any tasks in the project
-    // This is a simple implementation - in a real system you'd track creation timestamps
+    // For now, we'll use a simple heuristic: if there are tasks and this is a fresh save
+    // In a production system, you'd track creation timestamps or use a more sophisticated method
+    const hasTasks = projectData.tasks && projectData.tasks.length > 0
     console.log('🔍 Detecting task creation - Tasks found:', projectData.tasks?.length || 0)
-    return projectData.tasks && projectData.tasks.length > 0
+    
+    // TEMPORARY: Only trigger on task creation if we have a reasonable number of tasks
+    // This prevents triggering on deletion or when just navigating
+    // TODO: Implement proper task creation tracking
+    return hasTasks && (projectData.tasks?.length || 0) > 0
   }
 
   private static detectTaskCompleted(projectData: any): boolean {

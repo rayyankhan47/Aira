@@ -22,73 +22,26 @@ export class DiscordService {
    * Post a message to Discord about task updates
    */
   static async postTaskUpdate(taskData: any, summary?: string): Promise<DiscordResponse> {
-    if (!this.isConfigured()) {
-      return {
-        success: false,
-        error: 'Discord webhook not configured'
-      }
-    }
-
     try {
-      const content = summary || this.generateDefaultMessage(taskData)
-      
-      const webhookData = {
-        content: content,
-        embeds: [
-          {
-            title: taskData.title || 'Untitled Task',
-            description: taskData.description || 'No description provided',
-            color: this.getStatusColor(taskData.completed),
-            fields: [
-              {
-                name: 'Assignee',
-                value: taskData.assignees?.join(', ') || 'Unassigned',
-                inline: true
-              },
-              {
-                name: 'Tech Stack',
-                value: taskData.techStack?.join(', ') || 'Not specified',
-                inline: true
-              },
-              {
-                name: 'Due Date',
-                value: taskData.dueDate || 'No due date',
-                inline: true
-              },
-              {
-                name: 'Status',
-                value: taskData.completed ? '✅ Completed' : '🔄 In Progress',
-                inline: true
-              }
-            ],
-            footer: {
-              text: 'Automated by Aira Workflow',
-              icon_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
-            },
-            timestamp: new Date().toISOString()
-          }
-        ]
-      }
-
-      const response = await fetch(this.DISCORD_WEBHOOK_URL!, {
+      // Use server-side API route instead of direct API calls to avoid CORS
+      const response = await fetch('/api/discord/post-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(webhookData)
+        body: JSON.stringify({ task: taskData, summary })
       })
-
-      if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(`Discord webhook error: ${response.status} - ${errorData}`)
-      }
-
-      const data = await response.json()
       
-      return {
-        success: true,
-        messageId: data.id
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.error || 'Failed to post to Discord'
+        }
       }
+      
+      return result
     } catch (error) {
       console.error('Error posting to Discord:', error)
       return {

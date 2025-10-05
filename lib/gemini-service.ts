@@ -23,34 +23,26 @@ export class GeminiService {
    * Analyze task data and provide insights
    */
   static async analyzeTask(taskData: any): Promise<GeminiResponse> {
-    if (!this.isConfigured()) {
-      return {
-        success: false,
-        error: 'Gemini API key not configured'
-      }
-    }
-
     try {
-      const prompt = `Analyze this task and provide insights:
+      // Use server-side API route instead of direct API calls to avoid CORS
+      const response = await fetch('/api/gemini/analyze-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ task: taskData })
+      })
       
-Task Title: ${taskData.title || 'Untitled Task'}
-Description: ${taskData.description || 'No description'}
-Assignee: ${taskData.assignees?.join(', ') || 'Unassigned'}
-Tech Stack: ${taskData.techStack?.join(', ') || 'Not specified'}
-Due Date: ${taskData.dueDate || 'No due date'}
-Completed: ${taskData.completed ? 'Yes' : 'No'}
-
-Please provide:
-1. Priority assessment (High/Medium/Low)
-2. Estimated complexity
-3. Potential blockers or risks
-4. Suggested next steps
-5. Resource requirements
-
-Format your response in a clear, structured way.`
-
-      const response = await this.callGeminiAPI(prompt)
-      return response
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.error || 'Failed to analyze task'
+        }
+      }
+      
+      return result
     } catch (error) {
       console.error('Error analyzing task:', error)
       return {

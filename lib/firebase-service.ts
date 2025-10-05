@@ -313,9 +313,12 @@ export class FirebaseService {
     const actions: AgenticAction[] = []
     
     querySnapshot.forEach((doc) => {
+      const data = doc.data()
       actions.push({
         id: doc.id,
-        ...doc.data()
+        ...data,
+        // Convert Firebase timestamp to Date object
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
       } as AgenticAction)
     })
     
@@ -329,5 +332,12 @@ export class FirebaseService {
       status,
       details: details || null
     })
+  }
+
+  // Clear all agentic actions (for cleanup)
+  static async clearAllAgenticActions(): Promise<void> {
+    const querySnapshot = await getDocs(collection(db, 'agenticActions'))
+    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref))
+    await Promise.all(deletePromises)
   }
 }

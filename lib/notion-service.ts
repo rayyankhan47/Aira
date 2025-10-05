@@ -25,24 +25,26 @@ export class NotionService {
    * Create or update a Notion page with task information
    */
   static async updateTaskPage(taskData: any, summary?: string): Promise<NotionResponse> {
-    if (!this.isConfigured()) {
-      return {
-        success: false,
-        error: 'Notion API not configured'
-      }
-    }
-
     try {
-      // First, try to find existing page
-      const existingPage = await this.findExistingPage(taskData.title)
+      // Use server-side API route instead of direct API calls to avoid CORS
+      const response = await fetch('/api/notion/update-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ task: taskData, summary })
+      })
       
-      if (existingPage) {
-        // Update existing page
-        return await this.updateExistingPage(existingPage.id, taskData, summary)
-      } else {
-        // Create new page
-        return await this.createNewPage(taskData, summary)
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.error || 'Failed to update Notion page'
+        }
       }
+      
+      return result
     } catch (error) {
       console.error('Error updating Notion page:', error)
       return {

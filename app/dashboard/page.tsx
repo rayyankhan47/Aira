@@ -193,6 +193,20 @@ export default function Dashboard() {
     }
   }
 
+  const handleClearAgenticActions = async () => {
+    const confirmed = confirm('Are you sure you want to clear all agentic actions? This action cannot be undone.')
+    if (!confirmed) return
+
+    try {
+      await FirebaseService.clearAllAgenticActions()
+      setAgenticActions([])
+      alert('All agentic actions cleared successfully!')
+    } catch (error) {
+      console.error('Error clearing agentic actions:', error)
+      alert('Error clearing agentic actions')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -456,9 +470,19 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold text-gray-900">
               Agentic Actions
             </h2>
-            <div className="flex items-center text-gray-500">
-              <Activity className="h-5 w-5 mr-2" />
-              <span className="text-sm">Recent AI Activity</span>
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={handleClearAgenticActions}
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50 px-3 py-1 text-sm"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear All
+              </Button>
+              <div className="flex items-center text-gray-500">
+                <Activity className="h-5 w-5 mr-2" />
+                <span className="text-sm">Recent AI Activity</span>
+              </div>
             </div>
           </div>
 
@@ -517,7 +541,13 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {action.timestamp.toLocaleString()}
+                        {new Date(action.timestamp).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </td>
                     </tr>
                   ))}
