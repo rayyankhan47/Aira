@@ -191,168 +191,19 @@ export default function AiraWorkspace({
       console.log('First task structure:', JSON.stringify(tasks[0], null, 2))
     }
     
+    // For new projects, don't show default data - start with empty workspace
     if (tasks.length === 0) {
-      // Return default tasks if no data
-      const defaultTasks = [
-      // Default Task nodes
-      {
-        id: 'task-1',
-        type: 'taskNode',
-        position: { x: 500, y: 300 },
-        data: {
-      id: 'task-1',
-      title: 'Authentication and Database',
-      description: 'Setup OAuth login and a fast CRUD database.',
-          priority: 'high',
-          assignees: ['Rayyan'],
-          techStack: ['Next.js', 'Firebase'],
-          dueDate: '2025-01-25',
-      isCompleted: true,
-        },
-    },
-    {
-      id: 'task-2',
-        type: 'taskNode',
-        position: { x: 1200, y: 300 },
-        data: {
-          id: 'task-2',
-          title: 'Workspace UI/UX',
-          description: 'Implement drag-and-drop, connections, and zoom functionality.',
-          priority: 'high',
-          assignees: ['Rayyan'],
-          techStack: ['React Flow', 'Tailwind CSS'],
-          dueDate: '2025-01-26',
-      isCompleted: true,
-        },
-      },
-      {
-        id: 'task-3',
-        type: 'taskNode',
-        position: { x: 500, y: 700 },
-        data: {
-          id: 'task-3',
-          title: 'Agentic AI Integration',
-          description: 'Integrate Gemini API for AI agent task generation and execution.',
-          priority: 'medium',
-          assignees: ['Rayyan'],
-          techStack: ['Gemini API', 'Next.js API Routes'],
-          dueDate: '2025-01-27',
-          isCompleted: false,
-        },
-      },
-      {
-        id: 'task-4',
-        type: 'taskNode',
-        position: { x: 1200, y: 700 },
-        data: {
-          id: 'task-4',
-          title: 'Discord Notifications',
-          description: 'Send task updates and summaries to Discord channels.',
-          priority: 'low',
-          assignees: ['Rayyan'],
-          techStack: ['Discord API', 'Next.js API Routes'],
-          dueDate: '2025-01-28',
-          isCompleted: false,
-        },
-      },
-      {
-        id: 'task-5',
-        type: 'taskNode',
-        position: { x: 1900, y: 300 },
-        data: {
-          id: 'task-5',
-          title: 'GitHub PR Summaries',
-          description: 'Automatically summarize GitHub Pull Requests using AI.',
-          priority: 'low',
-          assignees: ['Rayyan'],
-          techStack: ['GitHub API', 'Gemini API'],
-          dueDate: '2025-01-28',
-          isCompleted: false,
-        },
-      },
-      {
-        id: 'task-6',
-        type: 'taskNode',
-        position: { x: 1900, y: 700 },
-        data: {
-          id: 'task-6',
-          title: 'Deployment to Vercel',
-          description: 'Deploy the Next.js application to Vercel for public access.',
-          priority: 'high',
-          assignees: ['Rayyan'],
-          techStack: ['Vercel', 'Next.js'],
-          dueDate: '2025-01-29',
-          isCompleted: false,
-        },
-      },
-    ]
-    console.log('Using default tasks:', defaultTasks)
-    return defaultTasks
+      console.log('No tasks found, returning empty array')
+      return []
     }
     
     // Process loaded tasks from Firebase
     const umlDiagrams = initialWorkspaceData?.umlDiagrams || []
     
+    // For new projects, don't show default data - start with empty workspace
     if (umlDiagrams.length === 0) {
-      // Return default UMLs if no data
-      const defaultUMLs = [
-      // Default UML nodes
-    {
-      id: 'uml-1',
-        type: 'umlNode',
-        position: { x: 850, y: 100 },
-        data: {
-          id: 'uml-1',
-          title: 'User Authentication Flow',
-      attributes: [
-            { id: 'attr-1', name: 'username', type: 'string' },
-            { id: 'attr-2', name: 'password', type: 'string' },
-            { id: 'attr-3', name: 'email', type: 'string' },
-      ],
-      methods: [
-            { id: 'meth-1', name: 'login', parameters: 'email, password', return_type: 'User', visibility: 'public' },
-            { id: 'meth-2', name: 'register', parameters: 'email, password, username', return_type: 'User', visibility: 'public' },
-          ],
-        },
-      },
-      {
-        id: 'uml-2',
-        type: 'umlNode',
-        position: { x: 1550, y: 100 },
-        data: {
-          id: 'uml-2',
-          title: 'Task Management Module',
-          attributes: [
-            { id: 'attr-4', name: 'title', type: 'string' },
-            { id: 'attr-5', name: 'description', type: 'string' },
-            { id: 'attr-6', name: 'dueDate', type: 'Date' },
-          ],
-          methods: [
-            { id: 'meth-3', name: 'createTask', parameters: 'title, description', return_type: 'Task', visibility: 'public' },
-            { id: 'meth-4', name: 'assignUser', parameters: 'taskId, userId', return_type: 'void', visibility: 'public' },
-          ],
-        },
-      },
-      {
-        id: 'uml-3',
-        type: 'umlNode',
-        position: { x: 850, y: 900 },
-        data: {
-          id: 'uml-3',
-          title: 'AI Agent Orchestration',
-          attributes: [
-            { id: 'attr-7', name: 'agentName', type: 'string' },
-            { id: 'attr-8', name: 'model', type: 'string' },
-          ],
-          methods: [
-            { id: 'meth-5', name: 'executeAgent', parameters: 'agentId, input', return_type: 'Output', visibility: 'public' },
-            { id: 'meth-6', name: 'chainAgents', parameters: 'agentIds, initialInput', return_type: 'Output[]', visibility: 'public' },
-          ],
-        },
-      },
-    ]
-    console.log('Using default UMLs:', defaultUMLs)
-    return defaultUMLs
+      console.log('No UML diagrams found, returning empty array')
+      return []
     }
 
     const convertedNodes = [
