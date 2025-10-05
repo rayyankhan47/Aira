@@ -44,6 +44,23 @@ export default function EnhancedUMLCard({
   const [newMethodParameters, setNewMethodParameters] = useState('')
   const [newMethodReturnType, setNewMethodReturnType] = useState('')
   const [newMethodVisibility, setNewMethodVisibility] = useState<'public' | 'private' | 'protected'>('public')
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editableTitle, setEditableTitle] = useState(title)
+
+  const handleTitleSave = () => {
+    onUpdate?.(id, { title: editableTitle.trim() || 'Untitled UML' })
+    setIsEditingTitle(false)
+    onInteraction?.()
+  }
+
+  const handleTitleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTitleSave()
+    } else if (e.key === 'Escape') {
+      setEditableTitle(title)
+      setIsEditingTitle(false)
+    }
+  }
 
   const addAttribute = () => {
     if (newAttributeName.trim() && newAttributeType.trim()) {
@@ -56,12 +73,14 @@ export default function EnhancedUMLCard({
       onUpdate?.(id, { attributes: updatedAttributes })
       setNewAttributeName('')
       setNewAttributeType('')
+      onInteraction?.()
     }
   }
 
   const removeAttribute = (attributeId: string) => {
     const updatedAttributes = attributes.filter(attr => attr.id !== attributeId)
     onUpdate?.(id, { attributes: updatedAttributes })
+    onInteraction?.()
   }
 
   const addMethod = () => {
@@ -79,12 +98,14 @@ export default function EnhancedUMLCard({
       setNewMethodParameters('')
       setNewMethodReturnType('')
       setNewMethodVisibility('public')
+      onInteraction?.()
     }
   }
 
   const removeMethod = (methodId: string) => {
     const updatedMethods = methods.filter(method => method.id !== methodId)
     onUpdate?.(id, { methods: updatedMethods })
+    onInteraction?.()
   }
 
   const getVisibilitySymbol = (visibility: string) => {
@@ -102,7 +123,30 @@ export default function EnhancedUMLCard({
     }`}>
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200">
-        <h3 className="font-medium text-sm">{title}</h3>
+        {isEditingTitle ? (
+          <input
+            type="text"
+            value={editableTitle}
+            onChange={(e) => setEditableTitle(e.target.value)}
+            onBlur={handleTitleSave}
+            onKeyDown={handleTitleKeyPress}
+            className="font-medium text-sm bg-transparent border-none outline-none flex-1"
+            placeholder="Enter UML name..."
+            autoFocus
+          />
+        ) : (
+          <h3 
+            className="font-medium text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded flex-1"
+            onClick={() => {
+              setIsEditingTitle(true)
+              setEditableTitle(title || '')
+              onInteraction?.()
+            }}
+            title="Click to edit name"
+          >
+            {title || 'Click to add name...'}
+          </h3>
+        )}
         <button
           onClick={() => {
             onDelete?.(id)

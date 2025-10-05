@@ -30,17 +30,28 @@ const styles = `
 `
 
 // React Flow Node Components - Defined outside component to prevent recreation
-const TaskNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => (
+const TaskNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => {
+  // Safety check for missing or malformed data
+  if (!data || !data.id) {
+    console.error('TaskNode: Missing or invalid data:', data)
+    return (
+      <div className="relative bg-red-100 border border-red-300 rounded-lg p-4">
+        <p className="text-red-600 text-sm">Error: Invalid task data</p>
+      </div>
+    )
+  }
+
+  return (
     <div className="relative" style={{ overflow: 'visible' }}>
       <EnhancedTaskCard
         id={data.id}
-        title={data.title}
-        description={data.description}
-        priority={data.priority}
-        assignees={data.assignees}
-        techStack={data.techStack}
-        dueDate={data.dueDate}
-        isCompleted={data.isCompleted}
+        title={data.title || ''}
+        description={data.description || ''}
+        priority={data.priority || 'medium'}
+        assignees={data.assignees || []}
+        techStack={data.techStack || []}
+        dueDate={data.dueDate || ''}
+        isCompleted={data.isCompleted || false}
         isNew={data.id === newComponentId}
         onUpdate={onUpdate}
         onDelete={onDelete}
@@ -81,20 +92,32 @@ const TaskNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate 
       }}
     />
   </div>
-)
+  )
+}
 
-const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => (
-  <div className="relative" style={{ overflow: 'visible' }}>
-    <EnhancedUMLCard
-      id={data.id}
-      title={data.name}
-      attributes={data.attributes}
-      methods={data.methods}
-      isNew={data.id === newComponentId}
-      onUpdate={onUpdate}
-      onDelete={onDelete}
-      onInteraction={() => setNewComponentId(null)}
-    />
+const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }: { data: any; newComponentId: string | null; setNewComponentId: (id: string | null) => void; onDelete: (id: string) => void; onUpdate: (id: string, updates: any) => void }) => {
+  // Safety check for missing or malformed data
+  if (!data || !data.id) {
+    console.error('UMLNode: Missing or invalid data:', data)
+    return (
+      <div className="relative bg-red-100 border border-red-300 rounded-lg p-4">
+        <p className="text-red-600 text-sm">Error: Invalid UML data</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative" style={{ overflow: 'visible' }}>
+      <EnhancedUMLCard
+        id={data.id}
+        title={data.title || data.name || ''}
+        attributes={data.attributes || []}
+        methods={data.methods || []}
+        isNew={data.id === newComponentId}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        onInteraction={() => setNewComponentId(null)}
+      />
     
     {/* Connection Handles - Positioned to extend beyond component */}
     <Handle
@@ -128,7 +151,8 @@ const UMLNode = ({ data, newComponentId, setNewComponentId, onDelete, onUpdate }
       }}
     />
   </div>
-)
+  )
+}
 
 export default function AiraWorkspace({ projectId, initialWorkspaceData }: { 
   projectId?: string
@@ -140,186 +164,269 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
 } = {}) {
   const [newComponentId, setNewComponentId] = useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
+  const lastSavedRef = useRef<string>('')
+  const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Define custom edge types for better animations
   const edgeTypes = useMemo(() => ({}), [])
 
-  // Convert our tasks and UMLs to React Flow nodes
-  const initialNodes: Node[] = useMemo(() => [
-    // Task nodes
-    {
-      id: 'task-1',
-      type: 'taskNode',
-      position: { x: 500, y: 300 },
-      data: {
+  // Convert Firebase data or default data to React Flow nodes
+  const initialNodes: Node[] = useMemo(() => {
+    console.log('Loading initial workspace data:', initialWorkspaceData)
+    const tasks = initialWorkspaceData?.tasks || []
+    console.log('Raw tasks from Firebase:', tasks)
+    if (tasks.length > 0) {
+      console.log('First task structure:', JSON.stringify(tasks[0], null, 2))
+    }
+    
+    if (tasks.length === 0) {
+      // Return default tasks if no data
+      const defaultTasks = [
+      // Default Task nodes
+      {
+        id: 'task-1',
+        type: 'taskNode',
+        position: { x: 500, y: 300 },
+        data: {
       id: 'task-1',
       title: 'Authentication and Database',
       description: 'Setup OAuth login and a fast CRUD database.',
-        priority: 'high',
-        assignees: ['Rayyan'],
-        techStack: ['Next.js', 'Supabase'],
-        dueDate: '2025-01-25',
+          priority: 'high',
+          assignees: ['Rayyan'],
+          techStack: ['Next.js', 'Firebase'],
+          dueDate: '2025-01-25',
       isCompleted: true,
-      },
+        },
     },
     {
       id: 'task-2',
-      type: 'taskNode',
-      position: { x: 1200, y: 300 },
-      data: {
-      id: 'task-2',
-      title: 'Github and Discord integration',
-      description: 'Link tasks to Github and track them through Discord',
-        priority: 'medium',
-        assignees: ['Rayyan'],
-        techStack: ['GitHub API', 'Discord.js'],
-        dueDate: '2025-01-25',
+        type: 'taskNode',
+        position: { x: 1200, y: 300 },
+        data: {
+          id: 'task-2',
+          title: 'Workspace UI/UX',
+          description: 'Implement drag-and-drop, connections, and zoom functionality.',
+          priority: 'high',
+          assignees: ['Rayyan'],
+          techStack: ['React Flow', 'Tailwind CSS'],
+          dueDate: '2025-01-26',
       isCompleted: true,
+        },
       },
-    },
-    {
-      id: 'task-3',
-      type: 'taskNode',
-      position: { x: 800, y: 800 },
-      data: {
+      {
         id: 'task-3',
-        title: 'Front-end Development',
-        description: 'Build the drag-and-drop interface with React',
-        priority: 'low',
-        assignees: ['Rayyan'],
-        techStack: ['React', 'TypeScript', 'Tailwind'],
-        dueDate: '2025-01-26',
-        isCompleted: false,
+        type: 'taskNode',
+        position: { x: 500, y: 700 },
+        data: {
+          id: 'task-3',
+          title: 'Agentic AI Integration',
+          description: 'Integrate Gemini API for AI agent task generation and execution.',
+          priority: 'medium',
+          assignees: ['Rayyan'],
+          techStack: ['Gemini API', 'Next.js API Routes'],
+          dueDate: '2025-01-27',
+          isCompleted: false,
+        },
       },
-    },
-    {
-      id: 'task-4',
-      type: 'taskNode',
-      position: { x: 2000, y: 600 },
-      data: {
-        title: 'Backend API Design',
-        description: 'Design RESTful APIs for the application',
-        assignee: 'Rayyan',
-        techStacks: ['Node.js', 'Express', 'PostgreSQL'],
-        dueDate: 'January 27th, 2025',
-        isCompleted: false,
-        statusColor: 'green',
+      {
+        id: 'task-4',
+        type: 'taskNode',
+        position: { x: 1200, y: 700 },
+        data: {
+          id: 'task-4',
+          title: 'Discord Notifications',
+          description: 'Send task updates and summaries to Discord channels.',
+          priority: 'low',
+          assignees: ['Rayyan'],
+          techStack: ['Discord API', 'Next.js API Routes'],
+          dueDate: '2025-01-28',
+          isCompleted: false,
+        },
       },
-    },
-    {
-      id: 'task-5',
-      type: 'taskNode',
-      position: { x: 2800, y: 1000 },
-      data: {
-        title: 'Deployment & DevOps',
-        description: 'Set up CI/CD pipeline and cloud deployment',
-        assignee: 'Rayyan',
-        techStacks: ['Docker', 'AWS', 'GitHub Actions'],
-        dueDate: 'January 28th, 2025',
-        isCompleted: false,
-        statusColor: 'yellow',
+      {
+        id: 'task-5',
+        type: 'taskNode',
+        position: { x: 1900, y: 300 },
+        data: {
+          id: 'task-5',
+          title: 'GitHub PR Summaries',
+          description: 'Automatically summarize GitHub Pull Requests using AI.',
+          priority: 'low',
+          assignees: ['Rayyan'],
+          techStack: ['GitHub API', 'Gemini API'],
+          dueDate: '2025-01-28',
+          isCompleted: false,
+        },
       },
-    },
-    // UML nodes
+      {
+        id: 'task-6',
+        type: 'taskNode',
+        position: { x: 1900, y: 700 },
+        data: {
+          id: 'task-6',
+          title: 'Deployment to Vercel',
+          description: 'Deploy the Next.js application to Vercel for public access.',
+          priority: 'high',
+          assignees: ['Rayyan'],
+          techStack: ['Vercel', 'Next.js'],
+          dueDate: '2025-01-29',
+          isCompleted: false,
+        },
+      },
+    ]
+    console.log('Using default tasks:', defaultTasks)
+    return defaultTasks
+    }
+    
+    // Process loaded tasks from Firebase
+    const umlDiagrams = initialWorkspaceData?.umlDiagrams || []
+    
+    if (umlDiagrams.length === 0) {
+      // Return default UMLs if no data
+      const defaultUMLs = [
+      // Default UML nodes
     {
       id: 'uml-1',
-      type: 'umlNode',
-      position: { x: 1600, y: 600 },
-      data: {
-      name: 'User',
+        type: 'umlNode',
+        position: { x: 850, y: 100 },
+        data: {
+          id: 'uml-1',
+          title: 'User Authentication Flow',
       attributes: [
-          { id: 'attr-1', name: 'id', type: 'string' },
-          { id: 'attr-2', name: 'email', type: 'string' },
-          { id: 'attr-3', name: 'name', type: 'string' }
-        ],
-        methods: [
-          { id: 'method-1', name: 'login', parameters: 'email, password', returnType: 'Session', visibility: 'public' },
-          { id: 'method-2', name: 'register', parameters: 'email, password, name', returnType: 'User', visibility: 'public' }
-        ],
-      },
-    },
-    {
-      id: 'uml-2',
-      type: 'umlNode',
-      position: { x: 2400, y: 400 },
-      data: {
-        name: 'Project',
-        attributes: [
-          { id: 'attr-4', name: 'id', type: 'string' },
-          { id: 'attr-5', name: 'title', type: 'string' },
-          { id: 'attr-6', name: 'description', type: 'string' }
-        ],
-        methods: [
-          { id: 'method-3', name: 'createTask', parameters: 'title, description', returnType: 'Task', visibility: 'public' },
-          { id: 'method-4', name: 'addMember', parameters: 'user', returnType: 'void', visibility: 'public' }
-        ],
-      },
-    },
-    {
-      id: 'uml-3',
-      type: 'umlNode',
-      position: { x: 3200, y: 800 },
-      data: {
-        name: 'Task',
-        attributes: [
-          { id: 'attr-7', name: 'id', type: 'string' },
-          { id: 'attr-8', name: 'title', type: 'string' },
-          { id: 'attr-9', name: 'status', type: 'TaskStatus' },
-          { id: 'attr-10', name: 'priority', type: 'Priority' }
+            { id: 'attr-1', name: 'username', type: 'string' },
+            { id: 'attr-2', name: 'password', type: 'string' },
+            { id: 'attr-3', name: 'email', type: 'string' },
       ],
       methods: [
-          { id: 'method-5', name: 'updateStatus', parameters: 'status: TaskStatus', returnType: 'void', visibility: 'public' },
-          { id: 'method-6', name: 'assignTo', parameters: 'user: User', returnType: 'void', visibility: 'public' }
-        ],
+            { id: 'meth-1', name: 'login', parameters: 'email, password', return_type: 'User', visibility: 'public' },
+            { id: 'meth-2', name: 'register', parameters: 'email, password, username', return_type: 'User', visibility: 'public' },
+          ],
+        },
       },
-    },
-  ], [])
+      {
+        id: 'uml-2',
+        type: 'umlNode',
+        position: { x: 1550, y: 100 },
+        data: {
+          id: 'uml-2',
+          title: 'Task Management Module',
+          attributes: [
+            { id: 'attr-4', name: 'title', type: 'string' },
+            { id: 'attr-5', name: 'description', type: 'string' },
+            { id: 'attr-6', name: 'dueDate', type: 'Date' },
+          ],
+          methods: [
+            { id: 'meth-3', name: 'createTask', parameters: 'title, description', return_type: 'Task', visibility: 'public' },
+            { id: 'meth-4', name: 'assignUser', parameters: 'taskId, userId', return_type: 'void', visibility: 'public' },
+          ],
+        },
+      },
+      {
+        id: 'uml-3',
+        type: 'umlNode',
+        position: { x: 850, y: 900 },
+        data: {
+          id: 'uml-3',
+          title: 'AI Agent Orchestration',
+          attributes: [
+            { id: 'attr-7', name: 'agentName', type: 'string' },
+            { id: 'attr-8', name: 'model', type: 'string' },
+          ],
+          methods: [
+            { id: 'meth-5', name: 'executeAgent', parameters: 'agentId, input', return_type: 'Output', visibility: 'public' },
+            { id: 'meth-6', name: 'chainAgents', parameters: 'agentIds, initialInput', return_type: 'Output[]', visibility: 'public' },
+          ],
+        },
+      },
+    ]
+    console.log('Using default UMLs:', defaultUMLs)
+    return defaultUMLs
+    }
 
-  // Initial edges
-  const initialEdges: Edge[] = useMemo(() => [
-    {
-      id: 'e1-2',
-      source: 'task-1',
-      target: 'task-2',
-      type: 'step',
-      animated: true,
-      style: { stroke: '#3B82F6', strokeWidth: 3 },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#3B82F6',
-      },
-    },
-    {
-      id: 'e1-uml1',
-      source: 'task-1',
-      target: 'uml-1',
-      type: 'step',
-      animated: true,
-      style: { stroke: '#3B82F6', strokeWidth: 3 },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#3B82F6',
-      },
-    },
-    {
-      id: 'e3-uml2',
-      source: 'task-3',
-      target: 'uml-2',
-      type: 'step',
-      animated: true,
-      style: { stroke: '#3B82F6', strokeWidth: 3 },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#3B82F6',
-      },
-    },
-  ], [])
+    const convertedNodes = [
+      ...tasks.filter(task => task && task.id).map(task => {
+        console.log('Processing task:', task)
+        const node = {
+          id: task.id,
+          type: 'taskNode',
+          position: { 
+            x: task.position?.x || task.position_x || Math.random() * 1000 + 100, 
+            y: task.position?.y || task.position_y || Math.random() * 600 + 100 
+          },
+          data: task.data || task,
+        }
+        console.log('Converting task node:', task.id, 'position:', node.position, 'data:', node.data)
+        return node
+      }),
+      ...umlDiagrams.filter(uml => uml && uml.id).map(uml => {
+        console.log('Processing UML:', uml)
+        const node = {
+          id: uml.id,
+          type: 'umlNode',
+          position: { 
+            x: uml.position?.x || uml.position_x || Math.random() * 1000 + 100, 
+            y: uml.position?.y || uml.position_y || Math.random() * 600 + 100 
+          },
+          data: uml.data || uml,
+        }
+        console.log('Converting UML node:', uml.id, 'position:', node.position, 'data:', node.data)
+        return node
+      }),
+    ]
+    console.log('Final converted nodes:', convertedNodes)
+    return convertedNodes
+  }, [initialWorkspaceData])
+
+  const initialEdges: Edge[] = useMemo(() => {
+    console.log('Loading initial connections:', initialWorkspaceData?.connections)
+    const loadedConnections = initialWorkspaceData?.connections || []
+    console.log('Raw connections from Firebase:', loadedConnections)
+    
+    if (loadedConnections.length > 0) {
+      console.log('First connection structure:', JSON.stringify(loadedConnections[0], null, 2))
+    }
+    
+    const defaultConnections = [
+      // Default edges
+      { id: 'e1-2', source: 'task-1', target: 'task-2', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e2-3', source: 'task-2', target: 'task-3', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e3-4', source: 'task-3', target: 'task-4', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e4-5', source: 'task-4', target: 'task-5', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e5-6', source: 'task-5', target: 'task-6', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e1-uml1', source: 'task-1', target: 'uml-1', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e2-uml2', source: 'task-2', target: 'uml-2', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+      { id: 'e3-uml3', source: 'task-3', target: 'uml-3', animated: true, markerEnd: { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' }, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+    ]
+    
+    // Use loaded connections if available, otherwise use defaults
+    const connectionsToUse = loadedConnections.length > 0 ? loadedConnections : defaultConnections
+    
+    const convertedConnections = connectionsToUse.map(connection => {
+      // Handle both loaded connection format and default format
+      const edge = {
+        id: connection.id,
+        source: connection.source_id || connection.source,
+        target: connection.target_id || connection.target,
+        animated: connection.animated !== undefined ? connection.animated : true,
+        markerEnd: connection.markerEnd || { type: MarkerType.ArrowClosed, width: 6, height: 4, color: '#3B82F6' },
+        style: connection.style || { stroke: '#3B82F6', strokeWidth: 2 },
+        sourceHandle: connection.source_handle || connection.sourceHandle || 'right-source',
+        targetHandle: connection.target_handle || connection.targetHandle || 'left-target'
+      }
+      console.log('Converting connection:', connection, 'to edge:', edge)
+      return edge
+    })
+    
+    console.log('Final converted edges:', convertedConnections)
+    return convertedConnections
+  }, [initialWorkspaceData])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
   // Update node function
   const updateNode = useCallback((nodeId: string, updates: any) => {
+    console.log('updateNode called:', nodeId, updates)
     setNodes((nds: Node[]) => 
       nds.map(node => 
         node.id === nodeId 
@@ -327,6 +434,7 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
           : node
       )
     )
+    console.log('Node updated, nodes state will change')
   }, [setNodes])
 
   // Delete node function
@@ -335,15 +443,34 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
     setEdges((eds: Edge[]) => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId))
   }, [setNodes, setEdges])
 
-  // Save workspace data to Firebase
-  const saveWorkspaceData = useCallback(async () => {
+  // Save position changes after dragging stops (debounced)
+  const savePositionChanges = useCallback(async () => {
     if (!projectId) return
     
     try {
+      // Helper function to remove undefined values
+      const removeUndefinedValues = (obj: any) => {
+        const cleaned: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+          if (value !== undefined) {
+            if (Array.isArray(value)) {
+              cleaned[key] = value.map(item => 
+                typeof item === 'object' && item !== null ? removeUndefinedValues(item) : item
+              )
+            } else if (typeof value === 'object' && value !== null) {
+              cleaned[key] = removeUndefinedValues(value)
+            } else {
+              cleaned[key] = value
+            }
+          }
+        }
+        return cleaned
+      }
+
       // Convert React Flow nodes and edges to our data format
       const tasks = nodes
         .filter(node => node.type === 'taskNode')
-        .map(node => ({
+        .map(node => removeUndefinedValues({
           id: node.id,
           ...node.data,
           position_x: node.position.x,
@@ -352,14 +479,14 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
       
       const umlDiagrams = nodes
         .filter(node => node.type === 'umlNode')
-        .map(node => ({
+        .map(node => removeUndefinedValues({
           id: node.id,
           ...node.data,
           position_x: node.position.x,
           position_y: node.position.y
         }))
       
-      const connections = edges.map(edge => ({
+      const connections = edges.map(edge => removeUndefinedValues({
         id: edge.id,
         source_id: edge.source,
         target_id: edge.target,
@@ -367,32 +494,230 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
         target_handle: edge.targetHandle
       }))
 
-      await FirebaseService.saveProjectWorkspaceData(projectId, {
+      const workspaceData = removeUndefinedValues({
         tasks,
         umlDiagrams,
         connections
       })
+
+      await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Position changes saved to Firebase')
+        console.log('Saved position data:', workspaceData)
+      }
     } catch (error) {
-      console.error('Error saving workspace data:', error)
+      console.error('Error saving position changes:', error)
     }
   }, [projectId, nodes, edges])
 
-  // Auto-save when nodes or edges change
+  // Debounced position save - only saves after user stops dragging
+  const debouncedPositionSave = useCallback(() => {
+    if (positionSaveTimeoutRef.current) {
+      clearTimeout(positionSaveTimeoutRef.current)
+    }
+    positionSaveTimeoutRef.current = setTimeout(() => {
+      savePositionChanges()
+    }, 1000) // Save 1 second after dragging stops
+  }, [savePositionChanges])
+
+
+  // Auto-save when nodes or edges change (but only if we have actual content and it's different from last save)
   useEffect(() => {
     if (projectId && (nodes.length > 0 || edges.length > 0)) {
-      const timeoutId = setTimeout(() => {
-        saveWorkspaceData()
-      }, 1000) // Debounce saves by 1 second
+      // Create a hash of current state to check if it's different from last save
+      // NOTE: We don't include position here because dragging triggers too many saves
+      const currentState = JSON.stringify({
+        nodesCount: nodes.length,
+        edgesCount: edges.length,
+        nodes: nodes.map(n => ({ 
+          id: n.id, 
+          type: n.type, 
+          title: n.data?.title || '',
+          description: n.data?.description || '',
+          priority: n.data?.priority || '',
+          assignees: n.data?.assignees || [],
+          techStack: n.data?.techStack || [],
+          dueDate: n.data?.dueDate || '',
+          isCompleted: n.data?.isCompleted || false,
+          attributes: n.data?.attributes || [],
+          methods: n.data?.methods || []
+        })),
+        edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target }))
+      })
       
-      return () => clearTimeout(timeoutId)
-    }
-  }, [nodes, edges, projectId, saveWorkspaceData])
+      if (currentState !== lastSavedRef.current) {
+        // Only log in development to avoid performance impact
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Auto-save triggered (state changed):', { 
+            nodesCount: nodes.length, 
+            edgesCount: edges.length,
+            projectId 
+          })
+          console.log('Current state:', currentState)
+          console.log('Last saved state:', lastSavedRef.current)
+        }
+        
+        const timeoutId = setTimeout(async () => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Saving workspace data...')
+          }
+          
+          // Inline save logic to avoid dependency issues
+          try {
+            // Helper function to remove undefined values
+            const removeUndefinedValues = (obj: any) => {
+              const cleaned: any = {}
+              for (const [key, value] of Object.entries(obj)) {
+                if (value !== undefined) {
+                  if (Array.isArray(value)) {
+                    cleaned[key] = value.map(item => 
+                      typeof item === 'object' && item !== null ? removeUndefinedValues(item) : item
+                    )
+                  } else if (typeof value === 'object' && value !== null) {
+                    cleaned[key] = removeUndefinedValues(value)
+                  } else {
+                    cleaned[key] = value
+                  }
+                }
+              }
+              return cleaned
+            }
 
-  // Define custom node types
+            // Convert React Flow nodes and edges to our data format
+            const tasks = nodes
+              .filter(node => node.type === 'taskNode')
+              .map(node => removeUndefinedValues({
+                id: node.id,
+                ...node.data,
+                position_x: node.position.x,
+                position_y: node.position.y
+              }))
+            
+            const umlDiagrams = nodes
+              .filter(node => node.type === 'umlNode')
+              .map(node => removeUndefinedValues({
+                id: node.id,
+                ...node.data,
+                position_x: node.position.x,
+                position_y: node.position.y
+              }))
+            
+            const connections = edges.map(edge => removeUndefinedValues({
+              id: edge.id,
+              source_id: edge.source,
+              target_id: edge.target,
+              source_handle: edge.sourceHandle,
+              target_handle: edge.targetHandle
+            }))
+
+            const workspaceData = removeUndefinedValues({
+              tasks,
+              umlDiagrams,
+              connections
+            })
+
+            await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Successfully saved to Firebase')
+              console.log('Saved data:', workspaceData)
+              if (tasks.length > 0) {
+                console.log('First saved task:', JSON.stringify(tasks[0], null, 2))
+              }
+            }
+            lastSavedRef.current = currentState
+          } catch (error) {
+            console.error('Error saving workspace data:', error)
+          }
+        }, 2000) // Increased debounce to 2 seconds to prevent rapid saves
+        
+        return () => clearTimeout(timeoutId)
+      } else {
+        // Remove this log entirely - it's too noisy and not useful
+        // console.log('Auto-save skipped (no changes detected)')
+      }
+    }
+  }, [nodes, edges, projectId]) // Removed saveWorkspaceData from dependencies
+
+  // Save immediately when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      if (projectId && (nodes.length > 0 || edges.length > 0)) {
+        console.log('Component unmounting - saving immediately')
+        // Force immediate save without debounce
+        setTimeout(async () => {
+          try {
+            const removeUndefinedValues = (obj: any) => {
+              const cleaned: any = {}
+              for (const [key, value] of Object.entries(obj)) {
+                if (value !== undefined) {
+                  if (Array.isArray(value)) {
+                    cleaned[key] = value.map(item => 
+                      typeof item === 'object' && item !== null ? removeUndefinedValues(item) : item
+                    )
+                  } else if (typeof value === 'object' && value !== null) {
+                    cleaned[key] = removeUndefinedValues(value)
+                  } else {
+                    cleaned[key] = value
+                  }
+                }
+              }
+              return cleaned
+            }
+
+            const tasks = nodes
+              .filter(node => node.type === 'taskNode')
+              .map(node => removeUndefinedValues({
+                id: node.id,
+                ...node.data,
+                position_x: node.position.x,
+                position_y: node.position.y
+              }))
+            
+            const umlDiagrams = nodes
+              .filter(node => node.type === 'umlNode')
+              .map(node => removeUndefinedValues({
+                id: node.id,
+                ...node.data,
+                position_x: node.position.x,
+                position_y: node.position.y
+              }))
+            
+            const connections = edges.map(edge => removeUndefinedValues({
+              id: edge.id,
+              source_id: edge.source,
+              target_id: edge.target,
+              source_handle: edge.sourceHandle,
+              target_handle: edge.targetHandle
+            }))
+
+            const workspaceData = removeUndefinedValues({
+              tasks,
+              umlDiagrams,
+              connections
+            })
+
+            await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
+            console.log('Immediate save on unmount completed')
+          } catch (error) {
+            console.error('Error in immediate save on unmount:', error)
+          }
+        }, 100) // Very short delay to ensure state is stable
+      }
+    }
+  }, [projectId, nodes, edges])
+
+  // Handle node drag end to save position changes
+  const onNodeDragStop = useCallback(() => {
+    if (projectId) {
+      debouncedPositionSave()
+    }
+  }, [projectId, debouncedPositionSave])
+
+  // Define custom node types - memoized to prevent React Flow warnings
   const nodeTypes: NodeTypes = useMemo(() => ({
     taskNode: (props: any) => <TaskNode {...props} newComponentId={newComponentId} setNewComponentId={setNewComponentId} onDelete={deleteNode} onUpdate={updateNode} />,
     umlNode: (props: any) => <UMLNode {...props} newComponentId={newComponentId} setNewComponentId={setNewComponentId} onDelete={deleteNode} onUpdate={updateNode} />,
-  }), [newComponentId, deleteNode, updateNode])
+  }), [newComponentId, deleteNode, updateNode]) // Stable dependencies only
 
   // Handle new connections - simplified for debugging
   const onConnect = useCallback((params: Connection) => {
@@ -435,10 +760,16 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
         assignees: [],
         techStack: [],
         dueDate: '',
-        isCompleted: false,
+      isCompleted: false,
       },
     }
-    setNodes((nds: Node[]) => [...nds, newNode])
+    
+    console.log('Adding new task node:', newNode)
+    setNodes((nds: Node[]) => {
+      const newNodes = [...nds, newNode]
+      console.log('Updated nodes array:', newNodes)
+      return newNodes
+    })
     setNewComponentId(newId)
   }, [setNodes, reactFlowInstance])
 
@@ -462,12 +793,18 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
       position,
       data: {
         id: newId,
-        name: '',
+        title: '',
       attributes: [],
       methods: [],
       },
     }
-    setNodes((nds: Node[]) => [...nds, newNode])
+    
+    console.log('Adding new UML node:', newNode)
+    setNodes((nds: Node[]) => {
+      const newNodes = [...nds, newNode]
+      console.log('Updated nodes array:', newNodes)
+      return newNodes
+    })
     setNewComponentId(newId)
   }, [setNodes, reactFlowInstance])
 
@@ -516,6 +853,7 @@ export default function AiraWorkspace({ projectId, initialWorkspaceData }: {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
