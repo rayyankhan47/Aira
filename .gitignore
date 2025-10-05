@@ -16,6 +16,19 @@ build/
 .env.test.local
 .env.production.local
 
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firebase.json
+firestore.rules
+storage.rules
+
+# API Keys and Secrets
+*.key
+*.pem
+secrets/
+
 # Vercel
 .vercel
 
