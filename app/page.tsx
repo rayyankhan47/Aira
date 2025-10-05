@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/Button'
 import FloatingBubbles from '@/components/FloatingBubbles'
+import AuthButton from '@/components/auth/AuthButton'
 import { Brain, GitBranch, MessageSquare, Zap, Users, BarChart3, Github, Slack, Code2, CheckSquare } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,12 +31,7 @@ export default function Home() {
               <a href="#ai-power" className="text-gray-600 hover:text-gray-900 transition-colors font-notion">AI Power</a>
             </nav>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" className="font-notion bg-transparent border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                Log In
-              </Button>
-              <Button className="font-notion bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border-0">
-                Get Started
-              </Button>
+              <AuthButton />
             </div>
           </div>
         </header>

@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Plus, Users, Link as LinkIcon } from 'lucide-react'
 import Link from 'next/link'
+import FirebaseTest from '@/components/FirebaseTest'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { FirebaseService } from '@/lib/firebase-service'
+import { useRouter } from 'next/navigation'
 
 interface AiraBoard {
   id: string
@@ -13,24 +17,43 @@ interface AiraBoard {
 }
 
 export default function Dashboard() {
+  const { user, loading: authLoading } = useAuth()
   const [boards, setBoards] = useState<AiraBoard[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-  // Mock data for now - will be replaced with database calls
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setBoards([
-        {
-          id: 'hack-the-valley-x',
-          name: 'Hack The Valley X',
-          description: 'The world famous Hack The Valley Hackathon!',
-          owner: 'Rayyan'
-        }
-      ])
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  // Load user's projects when user is authenticated
+  useEffect(() => {
+    if (user) {
+      loadUserProjects()
+    }
+  }, [user])
+
+  const loadUserProjects = async () => {
+    if (!user) return
+    
+    setIsLoading(true)
+    try {
+      const projects = await FirebaseService.getUserProjects(user.uid)
+      setBoards(projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        owner: user.displayName || user.email || 'Unknown'
+      })))
+    } catch (error) {
+      console.error('Error loading projects:', error)
+    } finally {
       setIsLoading(false)
-    }, 1000)
-  }, [])
+    }
+  }
 
   if (isLoading) {
     return (
@@ -64,6 +87,11 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Your Aira Boards
         </h1>
+
+        {/* Firebase Test Component */}
+        <div className="mb-8">
+          <FirebaseTest />
+        </div>
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8">
