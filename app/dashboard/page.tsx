@@ -14,7 +14,7 @@ interface AiraBoard {
   name: string
   description: string
   owner: string
-  coupledAgenticAira?: string
+  coupledAgenticWorkflowIds?: string[]
 }
 
 export default function Dashboard() {
@@ -47,6 +47,8 @@ export default function Dashboard() {
   const [showFirebaseTest, setShowFirebaseTest] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [showCoupleModal, setShowCoupleModal] = useState<string | null>(null)
+  const [selectedWorkflowIds, setSelectedWorkflowIds] = useState<string[]>([])
+  const [originalWorkflowIds, setOriginalWorkflowIds] = useState<string[]>([])
 
   const loadUserProjects = async () => {
     if (!user) return
@@ -59,7 +61,7 @@ export default function Dashboard() {
         name: project.name,
         description: project.description || '',
         owner: user.displayName || user.email || 'Unknown',
-        coupledAgenticAira: project.coupledAgenticWorkflowId || undefined
+        coupledAgenticWorkflowIds: project.coupledAgenticWorkflowIds || []
       })))
     } catch (error) {
       console.error('Error loading projects:', error)
@@ -122,14 +124,40 @@ export default function Dashboard() {
     }
   }
 
-  const handleCoupleAgenticAira = async (projectId: string, agenticAiraId: string) => {
+  const handleOpenCoupleModal = (projectId: string) => {
+    const project = boards.find(b => b.id === projectId)
+    if (project) {
+      const currentWorkflowIds = project.coupledAgenticWorkflowIds || []
+      setOriginalWorkflowIds([...currentWorkflowIds])
+      setSelectedWorkflowIds([...currentWorkflowIds])
+      setShowCoupleModal(projectId)
+    }
+  }
+
+  const handleWorkflowToggle = (workflowId: string) => {
+    setSelectedWorkflowIds(prev => {
+      if (prev.includes(workflowId)) {
+        return prev.filter(id => id !== workflowId)
+      } else {
+        return [...prev, workflowId]
+      }
+    })
+  }
+
+  const handleSaveCoupling = async (projectId: string) => {
     try {
-      await FirebaseService.coupleProjectWithWorkflow(projectId, agenticAiraId)
+      await FirebaseService.updateProjectCoupledWorkflows(projectId, selectedWorkflowIds)
       setShowCoupleModal(null)
+      setSelectedWorkflowIds([])
+      setOriginalWorkflowIds([])
       loadUserProjects() // Reload to show coupled status
     } catch (error) {
-      console.error('Error coupling agentic workflow:', error)
+      console.error('Error updating project couplings:', error)
     }
+  }
+
+  const hasChanges = () => {
+    return JSON.stringify(selectedWorkflowIds.sort()) !== JSON.stringify(originalWorkflowIds.sort())
   }
 
   if (isLoading) {
@@ -243,10 +271,12 @@ export default function Dashboard() {
                 </div>
 
                 {/* Coupling Status */}
-                {board.coupledAgenticAira && (
+                {board.coupledAgenticWorkflowIds && board.coupledAgenticWorkflowIds.length > 0 && (
                   <div className="flex items-center text-green-600 mb-4">
                     <Bot className="h-4 w-4 mr-2" />
-                    <span className="text-sm">Coupled with AI Assistant</span>
+                    <span className="text-sm">
+                      Coupled with {board.coupledAgenticWorkflowIds.length} AI workflow{board.coupledAgenticWorkflowIds.length > 1 ? 's' : ''}
+                    </span>
                   </div>
                 )}
 
@@ -260,15 +290,15 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowCoupleModal(board.id)}
+                    onClick={() => handleOpenCoupleModal(board.id)}
                     className={`px-3 py-2 rounded-lg font-medium text-sm ${
-                      board.coupledAgenticAira 
+                      board.coupledAgenticWorkflowIds && board.coupledAgenticWorkflowIds.length > 0
                         ? 'border-green-300 text-green-600 hover:bg-green-50' 
                         : 'border-blue-300 text-blue-600 hover:bg-blue-50'
                     }`}
                   >
                     <Zap className="h-4 w-4 mr-1" />
-                    {board.coupledAgenticAira ? 'Reconfigure' : 'Couple with Agentic Aira'}
+                    {board.coupledAgenticWorkflowIds && board.coupledAgenticWorkflowIds.length > 0 ? 'Manage Couplings' : 'Couple with Agentic Aira'}
                   </Button>
                 </div>
               </div>
@@ -455,45 +485,76 @@ export default function Dashboard() {
         {/* Couple Agentic Aira Modal */}
         {showCoupleModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Couple with Agentic Aira</h3>
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Agentic Workflow Couplings</h3>
               <p className="text-gray-600 mb-6">
-                Select an agentic workflow to automatically run when tasks are created or completed in this project.
+                Select which agentic workflows should automatically run when tasks are created or completed in this project.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {agenticAiras.map((agenticAira) => (
                   <label key={agenticAira.id} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                     <input
-                      type="radio"
-                      name="agenticAira"
-                      value={agenticAira.id}
-                      className="mr-3"
+                      type="checkbox"
+                      checked={selectedWorkflowIds.includes(agenticAira.id)}
+                      onChange={() => handleWorkflowToggle(agenticAira.id)}
+                      className="mr-3 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                     />
-                    <div>
-                      <div className="font-medium text-gray-900">{agenticAira.name}</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 flex items-center">
+                        <Bot className="h-4 w-4 mr-2 text-purple-600" />
+                        {agenticAira.name}
+                      </div>
                       <div className="text-sm text-gray-600">{agenticAira.description}</div>
                     </div>
                   </label>
                 ))}
+                {agenticAiras.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No agentic workflows created yet.</p>
+                    <Link href="/agentic-workspace">
+                      <button className="mt-2 text-purple-600 hover:text-purple-700 font-medium">
+                        Create your first workflow →
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => setShowCoupleModal(null)}
+                  onClick={() => {
+                    setShowCoupleModal(null)
+                    setSelectedWorkflowIds([])
+                    setOriginalWorkflowIds([])
+                  }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => {
-                    const selectedRadio = document.querySelector('input[name="agenticAira"]:checked') as HTMLInputElement
-                    if (selectedRadio) {
-                      handleCoupleAgenticAira(showCoupleModal, selectedRadio.value)
+                    if (hasChanges()) {
+                      const confirmed = confirm(
+                        `Are you sure you want to ${selectedWorkflowIds.length > originalWorkflowIds.length ? 'add' : selectedWorkflowIds.length < originalWorkflowIds.length ? 'remove' : 'change'} workflow coupling${Math.abs(selectedWorkflowIds.length - originalWorkflowIds.length) > 1 ? 's' : ''}?`
+                      )
+                      if (confirmed) {
+                        handleSaveCoupling(showCoupleModal)
+                      }
+                    } else {
+                      setShowCoupleModal(null)
+                      setSelectedWorkflowIds([])
+                      setOriginalWorkflowIds([])
                     }
                   }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    hasChanges() 
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  disabled={!hasChanges()}
                 >
-                  Couple Workflow
+                  {hasChanges() ? 'Save Changes' : 'No Changes'}
                 </button>
               </div>
             </div>

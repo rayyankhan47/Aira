@@ -17,7 +17,7 @@ export interface Project {
   name: string
   description?: string
   userId: string
-  coupledAgenticWorkflowId?: string
+  coupledAgenticWorkflowIds?: string[]
   workspaceData: {
     tasks: any[]
     umlDiagrams: any[]
@@ -241,22 +241,35 @@ export class FirebaseService {
     })
   }
 
-  // Couple a project with an agentic workflow
-  static async coupleProjectWithWorkflow(projectId: string, workflowId: string): Promise<void> {
+  // Update project's coupled agentic workflows
+  static async updateProjectCoupledWorkflows(projectId: string, workflowIds: string[]): Promise<void> {
     const docRef = doc(db, 'projects', projectId)
     await updateDoc(docRef, {
-      coupledAgenticWorkflowId: workflowId,
+      coupledAgenticWorkflowIds: workflowIds,
       updatedAt: new Date()
     })
   }
 
-  // Uncouple a project from its agentic workflow
-  static async uncoupleProjectFromWorkflow(projectId: string): Promise<void> {
-    const docRef = doc(db, 'projects', projectId)
-    await updateDoc(docRef, {
-      coupledAgenticWorkflowId: null,
-      updatedAt: new Date()
-    })
+  // Add a single workflow to project's couplings
+  static async coupleProjectWithWorkflow(projectId: string, workflowId: string): Promise<void> {
+    const project = await this.getProject(projectId)
+    if (!project) return
+
+    const currentWorkflowIds = project.coupledAgenticWorkflowIds || []
+    if (!currentWorkflowIds.includes(workflowId)) {
+      const updatedWorkflowIds = [...currentWorkflowIds, workflowId]
+      await this.updateProjectCoupledWorkflows(projectId, updatedWorkflowIds)
+    }
+  }
+
+  // Remove a single workflow from project's couplings
+  static async uncoupleProjectFromWorkflow(projectId: string, workflowId: string): Promise<void> {
+    const project = await this.getProject(projectId)
+    if (!project) return
+
+    const currentWorkflowIds = project.coupledAgenticWorkflowIds || []
+    const updatedWorkflowIds = currentWorkflowIds.filter(id => id !== workflowId)
+    await this.updateProjectCoupledWorkflows(projectId, updatedWorkflowIds)
   }
 
   // ===== AGENTIC ACTION METHODS =====

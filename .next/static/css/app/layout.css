@@ -792,6 +792,9 @@ video {
 .h-auto {
   height: auto;
 }
+.max-h-80 {
+  max-height: 20rem;
+}
 .min-h-screen {
   min-height: 100vh;
 }
@@ -870,6 +873,9 @@ video {
 }
 .max-w-md {
   max-width: 28rem;
+}
+.max-w-lg {
+  max-width: 32rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -2103,6 +2109,11 @@ a {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-purple-700:hover {
+  --tw-text-opacity: 1;
+  color: rgb(126 34 206 / var(--tw-text-opacity, 1));
 }
 
 .hover\:underline:hover {
