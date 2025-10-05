@@ -6,7 +6,7 @@ import { Plus, Users, Link as LinkIcon, ArrowLeft, Settings, Trash2, Bot, Activi
 import Link from 'next/link'
 import FirebaseTest from '@/components/FirebaseTest'
 import { useAuth } from '@/components/providers/AuthProvider'
-import { FirebaseService } from '@/lib/firebase-service'
+import { FirebaseService, AgenticWorkflow, AgenticAction } from '@/lib/firebase-service'
 import { useRouter } from 'next/navigation'
 
 interface AiraBoard {
@@ -17,27 +17,10 @@ interface AiraBoard {
   coupledAgenticAira?: string
 }
 
-interface AgenticAira {
-  id: string
-  name: string
-  description: string
-  owner: string
-  nodes: any[]
-  edges: any[]
-}
-
-interface AgenticAction {
-  id: string
-  title: string
-  agent: string
-  timestamp: Date
-  status: 'completed' | 'loading' | 'error'
-}
-
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth()
   const [boards, setBoards] = useState<AiraBoard[]>([])
-  const [agenticAiras, setAgenticAiras] = useState<AgenticAira[]>([])
+  const [agenticAiras, setAgenticAiras] = useState<AgenticWorkflow[]>([])
   const [agenticActions, setAgenticActions] = useState<AgenticAction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
@@ -76,7 +59,7 @@ export default function Dashboard() {
         name: project.name,
         description: project.description || '',
         owner: user.displayName || user.email || 'Unknown',
-        coupledAgenticAira: (project as any).coupledAgenticAira || undefined
+        coupledAgenticAira: project.coupledAgenticWorkflowId || undefined
       })))
     } catch (error) {
       console.error('Error loading projects:', error)
@@ -121,29 +104,10 @@ export default function Dashboard() {
     if (!user) return
     
     try {
-      // For now, we'll create some mock agentic airas
-      // Later this will be loaded from Firebase
-      const mockAgenticAiras: AgenticAira[] = [
-        {
-          id: '1',
-          name: 'Smart Task Assistant',
-          description: 'Analyzes new tasks and updates Notion automatically',
-          owner: user.displayName || user.email || 'Unknown',
-          nodes: [],
-          edges: []
-        },
-        {
-          id: '2', 
-          name: 'Discord Notifier',
-          description: 'Sends task updates to Discord channels',
-          owner: user.displayName || user.email || 'Unknown',
-          nodes: [],
-          edges: []
-        }
-      ]
-      setAgenticAiras(mockAgenticAiras)
+      const workflows = await FirebaseService.getUserAgenticWorkflows(user.uid)
+      setAgenticAiras(workflows)
     } catch (error) {
-      console.error('Error loading agentic airas:', error)
+      console.error('Error loading agentic workflows:', error)
     }
   }
 
@@ -151,25 +115,8 @@ export default function Dashboard() {
     if (!user) return
     
     try {
-      // For now, we'll create some mock agentic actions
-      // Later this will be loaded from Firebase
-      const mockActions: AgenticAction[] = [
-        {
-          id: '1',
-          title: 'Notion Page Updated',
-          agent: 'Smart Task Assistant',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          status: 'completed'
-        },
-        {
-          id: '2',
-          title: 'Discord Message Sent',
-          agent: 'Discord Notifier', 
-          timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 minutes ago
-          status: 'completed'
-        }
-      ]
-      setAgenticActions(mockActions)
+      const actions = await FirebaseService.getUserAgenticActions(user.uid)
+      setAgenticActions(actions)
     } catch (error) {
       console.error('Error loading agentic actions:', error)
     }
@@ -177,12 +124,11 @@ export default function Dashboard() {
 
   const handleCoupleAgenticAira = async (projectId: string, agenticAiraId: string) => {
     try {
-      // TODO: Implement coupling logic in Firebase
-      console.log(`Coupling project ${projectId} with agentic aira ${agenticAiraId}`)
+      await FirebaseService.coupleProjectWithWorkflow(projectId, agenticAiraId)
       setShowCoupleModal(null)
       loadUserProjects() // Reload to show coupled status
     } catch (error) {
-      console.error('Error coupling agentic aira:', error)
+      console.error('Error coupling agentic workflow:', error)
     }
   }
 
@@ -415,7 +361,7 @@ export default function Dashboard() {
                 </p>
                 <div className="flex items-center text-gray-500 mb-4">
                   <Users className="h-4 w-4 mr-2" />
-                  <span>Owner: {agenticAira.owner}</span>
+                  <span>Owner: {user?.displayName || user?.email || 'Unknown'}</span>
                 </div>
                 <Button
                   variant="outline"

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Save, Play, Bot, Zap, FileText, MessageSquare, Brain, Filter, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { FirebaseService, AgenticWorkflow } from '@/lib/firebase-service'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 interface AgenticNode {
@@ -130,62 +131,18 @@ export default function AgenticWorkspace() {
     setIsLoading(true)
     try {
       if (workflowId) {
-        // TODO: Load existing workflow from Firebase
-        console.log('Loading workflow:', workflowId)
-        // For now, load mock data
-        setWorkflowName('Smart Task Assistant')
-        setWorkflowDescription('Analyzes new tasks and updates Notion automatically')
-        setNodes([
-          {
-            id: '1',
-            type: 'task-created',
-            position: { x: 100, y: 100 },
-            data: {
-              label: 'Task Created',
-              nodeType: 'input',
-              title: 'Task Created',
-              description: 'Triggers when a new task is created'
-            }
-          },
-          {
-            id: '2',
-            type: 'ai-analyze',
-            position: { x: 300, y: 100 },
-            data: {
-              label: 'AI Analyze',
-              nodeType: 'processing',
-              title: 'AI Analyze',
-              description: 'Uses Gemini AI to analyze task content'
-            }
-          },
-          {
-            id: '3',
-            type: 'update-notion',
-            position: { x: 500, y: 100 },
-            data: {
-              label: 'Update Notion',
-              nodeType: 'output',
-              title: 'Update Notion',
-              description: 'Creates or updates Notion pages'
-            }
-          }
-        ])
-        setEdges([
-          {
-            id: 'e1-2',
-            source: '1',
-            target: '2',
-            sourceHandle: 'right',
-            targetHandle: 'left'
-          },
-          {
-            id: 'e2-3',
-            source: '2',
-            target: '3',
-            sourceHandle: 'right',
-            targetHandle: 'left'
-          }
-        ])
+        // Load existing workflow from Firebase
+        const workflow = await FirebaseService.getAgenticWorkflow(workflowId)
+        if (workflow) {
+          setWorkflowName(workflow.name)
+          setWorkflowDescription(workflow.description || '')
+          setNodes(workflow.nodes || [])
+          setEdges(workflow.edges || [])
+        } else {
+          // Workflow not found, redirect to dashboard
+          router.push('/dashboard')
+          return
+        }
       } else {
         // New workflow
         setWorkflowName('Untitled Workflow')
@@ -205,16 +162,28 @@ export default function AgenticWorkspace() {
 
     setIsSaving(true)
     try {
-      // TODO: Save workflow to Firebase
-      console.log('Saving workflow:', {
-        name: workflowName,
-        description: workflowDescription,
-        nodes,
-        edges
-      })
-      
-      // Simulate save delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (workflowId) {
+        // Update existing workflow
+        await FirebaseService.updateAgenticWorkflow(workflowId, {
+          name: workflowName,
+          description: workflowDescription
+        })
+        await FirebaseService.saveAgenticWorkflowData(workflowId, nodes, edges)
+      } else {
+        // Create new workflow
+        const newWorkflow = await FirebaseService.createAgenticWorkflow(
+          user.uid,
+          workflowName,
+          workflowDescription
+        )
+        
+        // Save the workflow data
+        await FirebaseService.saveAgenticWorkflowData(newWorkflow.id, nodes, edges)
+        
+        // Redirect to the new workflow
+        router.push(`/agentic-workspace?workflow=${newWorkflow.id}`)
+        return
+      }
       
       // Show success message
       alert('Workflow saved successfully!')
