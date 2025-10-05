@@ -20,6 +20,7 @@ import { Plus, Settings, Camera, Download } from 'lucide-react'
 import EnhancedTaskCard from './EnhancedTaskCard'
 import EnhancedUMLCard from './EnhancedUMLCard'
 import { FirebaseService } from '@/lib/firebase-service'
+import { WorkflowExecutionService } from '@/lib/workflow-execution-service'
 import '@reactflow/core/dist/style.css'
 
 // Minimal CSS for touch performance
@@ -701,6 +702,14 @@ export default function AiraWorkspace({
 
             await FirebaseService.saveProjectWorkspaceData(projectId, workspaceData)
             setSaveStatus('saved')
+            
+            // Trigger workflow execution after successful save
+            try {
+              await WorkflowExecutionService.executeCoupledWorkflows(projectId, workspaceData)
+            } catch (workflowError) {
+              console.error('Error executing coupled workflows:', workflowError)
+              // Don't fail the save if workflow execution fails
+            }
           } catch (error) {
             console.error('Error in immediate save on unmount:', error)
             setSaveStatus('error')
@@ -827,9 +836,9 @@ export default function AiraWorkspace({
               : 'bg-green-100 text-green-800 border border-green-300'
           }`}>
             {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'error' ? 'Save Error' : 'Saved!'}
-          </div>
-        </div>
-        
+      </div>
+      </div>
+
         {/* Add Buttons */}
       <div className="absolute top-4 left-4 flex space-x-2 z-10">
           <button
@@ -854,7 +863,7 @@ export default function AiraWorkspace({
         <button className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg shadow-sm transition-colors">
           <Download className="h-4 w-4" />
           </button>
-      </div>
+        </div>
 
       {/* React Flow */}
       <div style={{ width: '100%', height: '100%' }}>

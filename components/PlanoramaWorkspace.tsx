@@ -260,6 +260,7 @@ export default function AiraWorkspace() {
         {connections.map(connection => (
           <ConnectionLine
             key={connection.id}
+            id={connection.id}
             fromX={connection.fromX}
             fromY={connection.fromY}
             toX={connection.toX}

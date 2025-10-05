@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import AiraWorkspace from '@/components/AiraWorkspace'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { FirebaseService } from '@/lib/firebase-service'
+import { WorkflowExecutionService } from '@/lib/workflow-execution-service'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Brain, 
