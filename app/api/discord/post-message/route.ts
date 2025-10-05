@@ -21,9 +21,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Create Discord message
+    const description = task.description || 'No description'
+    const truncatedDescription = description.length > 4096 ? description.substring(0, 4096) + '...' : description
+    
     const embed = {
       title: `📋 Task Update: ${task.title || 'Untitled Task'}`,
-      description: task.description || 'No description',
+      description: truncatedDescription,
       color: task.completed ? 0x00ff00 : 0x0099ff, // Green if completed, blue if in progress
       fields: [
         {
@@ -38,20 +41,22 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Add assignees if present
+    // Add assignees if present (truncated to fit Discord limits)
     if (task.assignees && task.assignees.length > 0) {
+      const assignees = task.assignees.join(', ')
       embed.fields.push({
         name: 'Assignees',
-        value: task.assignees.join(', '),
+        value: assignees.length > 1024 ? assignees.substring(0, 1024) + '...' : assignees,
         inline: true
       })
     }
     
-    // Add tech stack if present
+    // Add tech stack if present (truncated to fit Discord limits)
     if (task.techStack && task.techStack.length > 0) {
+      const techStack = task.techStack.join(', ')
       embed.fields.push({
         name: 'Tech Stack',
-        value: task.techStack.join(', '),
+        value: techStack.length > 1024 ? techStack.substring(0, 1024) + '...' : techStack,
         inline: true
       })
     }
@@ -65,19 +70,22 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // Add AI summary if available
+    // Add AI summary if available (truncated for Discord's 1024 char limit)
     if (summary) {
+      const truncatedSummary = summary.length > 1000 
+        ? summary.substring(0, 1000) + '...' 
+        : summary
+      
       embed.fields.push({
         name: '🤖 AI Analysis',
-        value: summary,
+        value: truncatedSummary,
         inline: false
       })
     }
     
     const discordPayload = {
       embeds: [embed],
-      username: 'Aira Bot',
-      avatar_url: 'https://cdn.discordapp.com/attachments/placeholder/bot-avatar.png'
+      username: 'Aira Bot'
     }
     
     const response = await fetch(discordWebhookUrl, {
@@ -90,14 +98,25 @@ export async function POST(request: NextRequest) {
     
     if (!response.ok) {
       const errorText = await response.text()
+      console.error('Discord API error response:', errorText)
       throw new Error(`Discord API error: ${response.statusText} - ${errorText}`)
     }
     
-    const result = await response.json()
+    // Discord webhooks might return empty response on success
+    let result = null
+    try {
+      const responseText = await response.text()
+      if (responseText) {
+        result = JSON.parse(responseText)
+      }
+    } catch (e) {
+      // Discord webhook success responses are often empty
+      console.log('Discord webhook response is empty (this is normal)')
+    }
     
     return NextResponse.json({
       success: true,
-      messageId: result.id || 'unknown',
+      messageId: result?.id || 'webhook-success',
       message: 'Discord message posted successfully'
     })
     

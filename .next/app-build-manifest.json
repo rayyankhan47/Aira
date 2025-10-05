@@ -22,10 +22,11 @@
       "static/css/app/workspace/page.css",
       "static/chunks/app/workspace/page.js"
     ],
-    "/not-found": [
+    "/agentic-workspace/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/not-found.js"
+      "static/css/app/agentic-workspace/page.css",
+      "static/chunks/app/agentic-workspace/page.js"
     ]
   }
 }
